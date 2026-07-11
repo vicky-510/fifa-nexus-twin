@@ -1,0 +1,102 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Outfit', sans-serif;
+  --color-slate-850: #172237;
+}
+
+/* Custom font scaling for accessibility */
+html.large-text {
+  font-size: 1.25rem; /* Scaled up by 25% */
+}
+
+/* High Contrast overrides */
+body.high-contrast {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.high-contrast a,
+body.high-contrast button,
+body.high-contrast input,
+body.high-contrast select {
+  outline: 2px solid #f59e0b !important; /* Amber border focus */
+  outline-offset: 2px;
+  color: #ffffff !important;
+  background-color: #000000 !important;
+}
+
+body.high-contrast .bg-slate-900,
+body.high-contrast .bg-slate-950,
+body.high-contrast .bg-slate-800,
+body.high-contrast .bg-slate-800\/90,
+body.high-contrast .bg-slate-800\/80,
+body.high-contrast .bg-slate-900\/80,
+body.high-contrast .bg-black {
+  background-color: #000000 !important;
+  background-image: none !important;
+  border-color: #ffffff !important;
+  border-width: 1px !important;
+}
+
+body.high-contrast text,
+body.high-contrast span,
+body.high-contrast p,
+body.high-contrast h1,
+body.high-contrast h2,
+body.high-contrast h3,
+body.high-contrast h4,
+body.high-contrast h5,
+body.high-contrast h6 {
+  color: #ffffff !important;
+}
+
+body.high-contrast .text-slate-400,
+body.high-contrast .text-slate-300,
+body.high-contrast .text-slate-200,
+body.high-contrast .text-gray-400,
+body.high-contrast .text-gray-300 {
+  color: #ffffff !important;
+}
+
+body.high-contrast .border-slate-700,
+body.high-contrast .border-slate-800,
+body.high-contrast .border-slate-600,
+body.high-contrast .border-slate-700\/80 {
+  border-color: #ffffff !important;
+  border-width: 1.5px !important;
+}
+
+body.high-contrast .text-yellow-500,
+body.high-contrast .text-amber-400,
+body.high-contrast .text-amber-500,
+body.high-contrast .text-red-500,
+body.high-contrast .text-red-400 {
+  color: #ffff00 !important; /* Neon Yellow for high vis alerts */
+}
+
+/* Custom terminal scanning lines animation */
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.scanline-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanline-effect::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}
