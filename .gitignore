@@ -18,3 +18,7 @@ dist/
 *.njsproj
 *.sln
 *.swp
+
+# Claude Code tooling artifacts (agent skills, not app code)
+server/.agents/
+server/skills-lock.json
