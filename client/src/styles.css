@@ -1,8 +1,21 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Outfit', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
   --color-slate-850: #172237;
+
+  /* FIFA Nexus Twin palette */
+  --color-nexus-bg: #020817;
+  --color-nexus-primary: #00D4FF;
+  --color-nexus-gold: #F59E0B;
+  --color-nexus-danger: #EF4444;
+  --color-nexus-safe: #10B981;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
 }
 
 /* Custom font scaling for accessibility */

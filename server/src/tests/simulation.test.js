@@ -37,9 +37,11 @@ jest.mock('express-rate-limit', () => {
 describe('Simulation Endpoints', () => {
   let authToken;
 
-  beforeAll(() => {
-    // Generate a valid authorization token for tests
-    authToken = AuthService.verifyCode('FIFA2026OPS');
+  beforeAll(async () => {
+    // Mock the access-code DB lookup used internally by AuthService.verifyCode,
+    // then generate a valid authorization token for tests (cached for the rest of this file).
+    pool.query.mockResolvedValueOnce({ rows: [{ value: 'FIFA2026OPS' }] });
+    authToken = await AuthService.verifyCode('FIFA2026OPS');
   });
 
   afterEach(() => {
