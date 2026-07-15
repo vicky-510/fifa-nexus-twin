@@ -3,6 +3,7 @@ const cors = require('cors');
 const errorHandler = require('./middleware/errorHandler.middleware');
 const authRoutes = require('./routes/auth.routes');
 const simulationRoutes = require('./routes/simulation.routes');
+const referenceRoutes = require('./routes/reference.routes');
 const logger = require('./utils/logger');
 
 const app = express();
@@ -51,6 +52,7 @@ app.use((req, res, next) => {
 // Route mounting
 app.use('/api/auth', authRoutes);
 app.use('/api', simulationRoutes);
+app.use('/api', referenceRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

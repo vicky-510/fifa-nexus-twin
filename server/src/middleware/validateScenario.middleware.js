@@ -1,6 +1,8 @@
-const whitelistedScenarios = ['exitSurge', 'stormInundation', 'gridlockOutage'];
+const { getAllScenarioIds } = require('../data/crisisScenarios.data');
 
 function validateScenarioMiddleware(req, res, next) {
+  const whitelistedScenarios = getAllScenarioIds();
+
   if (req.method === 'POST') {
     const { scenario } = req.body;
     if (!scenario || !whitelistedScenarios.includes(scenario)) {
@@ -9,7 +11,7 @@ function validateScenarioMiddleware(req, res, next) {
       });
     }
   }
-  
+
   if (req.method === 'GET' && req.query.scenario) {
     const { scenario } = req.query;
     if (!whitelistedScenarios.includes(scenario)) {

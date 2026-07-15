@@ -1,0 +1,57 @@
+import { Component, Input, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Stadium, Match } from '../../../core/services/reference.service';
+
+@Component({
+  selector: 'app-live-match-ticker',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    @if (stadium) {
+      <div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs font-mono">
+        <span class="font-bold text-white">🏟️ {{ stadium.name }}</span>
+        <span class="text-slate-600">|</span>
+
+        @if (match && match.status === 'live') {
+          <span class="text-red-400 font-bold animate-pulse">🔴 LIVE: {{ match.homeFlagEmoji }} {{ match.homeTeam }} {{ liveScoreHome(match) }}–{{ liveScoreAway(match) }} {{ match.awayTeam }} {{ match.awayFlagEmoji }}</span>
+          @if (match.currentMinute != null) {
+            <span class="text-slate-600">|</span>
+            <span class="text-red-300">⏱ {{ match.currentMinute }}'</span>
+          }
+          <span class="text-slate-600">|</span>
+          <span class="text-slate-300">👥 {{ stadium.capacity.toLocaleString() }} capacity</span>
+        } @else if (match) {
+          <span class="text-amber-400 font-bold">🏆 {{ match.stage }}: {{ match.homeFlagEmoji }} {{ match.homeTeam }} vs {{ match.awayFlagEmoji }} {{ match.awayTeam }}</span>
+          <span class="text-slate-600">|</span>
+          <span class="text-slate-300">📅 {{ match.date }}</span>
+          <span class="text-slate-600">|</span>
+          <span class="text-slate-300">👥 {{ stadium.capacity.toLocaleString() }} capacity</span>
+          <span class="text-slate-600">|</span>
+          <span class="text-cyan-400">⏳ {{ daysAway(match.date) }} days away</span>
+        } @else {
+          <span class="text-slate-500">Standby — no scheduled match</span>
+        }
+      </div>
+    }
+  `
+})
+export class LiveMatchTickerComponent {
+  @Input() stadium: Stadium | null = null;
+  @Input() match: Match | null = null;
+
+  // Live matches store their running score in `liveScore` (homeScore/awayScore
+  // stay null until the match is completed), so fall back to that when live.
+  liveScoreHome(match: Match): number {
+    return match.liveScore?.home ?? match.homeScore ?? 0;
+  }
+
+  liveScoreAway(match: Match): number {
+    return match.liveScore?.away ?? match.awayScore ?? 0;
+  }
+
+  daysAway(dateStr: string): number {
+    const target = new Date(dateStr).getTime();
+    const now = new Date('2026-07-15').getTime();
+    return Math.max(0, Math.ceil((target - now) / (1000 * 60 * 60 * 24)));
+  }
+}

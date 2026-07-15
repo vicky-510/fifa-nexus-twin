@@ -122,7 +122,7 @@ export class AccessCodeEntryComponent {
     this.authService.verifyCode(code).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/']);
       },
       error: () => {
         this.isLoading.set(false);

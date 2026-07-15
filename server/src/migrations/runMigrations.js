@@ -91,6 +91,18 @@ async function runMigrations() {
       logger.info(`Database already has ${count} simulation records. Skipping seeding.`);
     }
 
+    // 3. Seed the access code into app_config on first boot only (never overwrite a
+    // code an operator has since changed via the change-code endpoint).
+    const env = require('../config/env');
+    const { rows: configRows } = await client.query('SELECT value FROM app_config WHERE key = $1', ['access_code']);
+    if (configRows.length === 0) {
+      await client.query(
+        `INSERT INTO app_config (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING`,
+        ['access_code', env.ACCESS_CODE]
+      );
+      logger.info('Seeded access_code into app_config from .env (first boot).');
+    }
+
   } catch (err) {
     logger.error('Failed to run database migrations and seeding', err);
     client.release();

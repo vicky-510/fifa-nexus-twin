@@ -6,7 +6,14 @@ const triggerRateLimiter = require('../middleware/rateLimiter.middleware');
 
 const router = express.Router();
 
-// Apply auth protection to all simulation routes
+// Public, unauthenticated route for QR-scanned ground-staff mobile cards.
+// Mounted BEFORE the authMiddleware gate below on purpose.
+router.get(
+  '/simulation/:simulationId/public',
+  SimulationController.getPublicRecord
+);
+
+// Apply auth protection to all remaining simulation routes
 router.use(authMiddleware);
 
 // Synchronous triggering route
@@ -23,6 +30,26 @@ router.post(
   triggerRateLimiter,
   validateScenario,
   SimulationController.triggerStream
+);
+
+// Escalate an active crisis to the next severity level
+router.post(
+  '/simulation-trigger/escalate',
+  triggerRateLimiter,
+  SimulationController.escalate
+);
+
+// Predictive risk forecast (pre-crisis)
+router.post(
+  '/simulation-trigger/predict',
+  triggerRateLimiter,
+  SimulationController.predict
+);
+
+// Manual/system crisis timeline note
+router.post(
+  '/simulation/:simulationId/timeline',
+  SimulationController.addTimelineEntry
 );
 
 // History retrieval route
