@@ -105,8 +105,7 @@ async function runMigrations() {
 
   } catch (err) {
     logger.error('Failed to run database migrations and seeding', err);
-    client.release();
-    process.exit(1); // Fail fast and exit the server process
+    process.exit(1); // Fail fast and exit the server process; finally below still runs first
   } finally {
     client.release();
   }
