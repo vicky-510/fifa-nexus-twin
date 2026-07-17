@@ -53,6 +53,90 @@ This is "logical decision making based on user context" applied literally: the A
 - `MOCK_MODE` is available to demo the full UI/response flow without live Gemini API calls, for reviewers without an API key or to conserve quota.
 - The crisis scenarios and their agency response categories (navigation, security, accessibility, transport, sustainability) are modeled on publicly documented stadium emergency-operations practices, not a specific real FIFA Emergency Action Plan document.
 
+## The Prompt
+
+This project was built with an AI coding assistant (Claude Code). The prompt below is the one that would reproduce this project's scope and quality bar from scratch — pin the stack, the data model, and the non-functional bar explicitly, or an AI will default to a shallow demo instead of a submission-ready build.
+
+```
+Build "StadiumPulse" — a GenAI-powered crisis simulation and command dashboard for
+FIFA World Cup 2026 stadium operations staff.
+
+VERTICAL & PERSONA
+The user is a Stadium Operations Command Center staff member during a live match.
+When a crisis unfolds (crowd surge, extreme weather, transit gridlock, structural
+incident), they need an instant, coordinated, multi-agency response plan — not a
+slow committee decision.
+
+STACK
+- Frontend: Angular (latest major), standalone components, Signal-based state
+  (no NgRx), Tailwind CSS.
+- Backend: Node.js + Express, layered as routes -> controllers -> services -> models.
+- Database: PostgreSQL, accessed via the `pg` pool with parameterized queries only
+  (no ORM). Idempotent SQL migrations that run automatically on boot, seeding
+  sample data only if the table is empty.
+- AI: Google Gemini (structured JSON-schema output), with a MOCK_MODE fallback
+  that returns static canned responses when no API key is available.
+- Auth: no external JWT library — a single shared access code, verified server-side,
+  issuing a short-lived signed token via Node's built-in `crypto` module.
+
+DATA MODEL
+- 16 real World Cup stadiums (US/Mexico/Canada) with embedded risk-profile data:
+  altitude, seismic zone, extreme heat, hurricane exposure, transit chokepoints, etc.
+- A crisis scenario catalog, each scenario scoped to only the stadiums where it's
+  realistically relevant (e.g. a flood scenario shouldn't trigger at a domed,
+  inland stadium), with a defined escalation path to a more severe scenario.
+- A `simulations` table storing each triggered response, with stadium/match
+  linkage, severity, escalation lineage, and a timeline of events.
+
+CORE BEHAVIOR
+- When an operator triggers a scenario for a stadium, call the AI with the
+  stadium's real risk profile and the scenario context. Force it to return a
+  structured plan across simultaneous operational lanes: crowd navigation,
+  security/crowd control, accessibility guidance, transport updates,
+  sustainability/energy actions, and multilingual public-address scripts
+  (at least English, Spanish, French).
+- Support escalation: re-running a scenario at higher severity should produce a
+  visibly different, more urgent response, and be linked to the prior record.
+- Stream the AI response back over Server-Sent Events into a live "command
+  terminal" UI element, not just a static form result.
+- Add a public, unauthenticated mobile view (e.g. `/staff/:id/:role`) that ground
+  staff can reach without the ops access code — the main dashboard should let an
+  operator generate a QR code (as a real overlay dialog, not an inline element)
+  that encodes a link to that public view, so staff scan it with their own phone.
+
+NON-FUNCTIONAL BAR (do not treat these as optional polish — they are graded)
+- Testing: unit/integration tests for every backend endpoint (auth, all CRUD/
+  trigger/streaming routes, error paths) and every frontend component, service,
+  guard, interceptor, and state store — not just the "happy path" files.
+- Security: parameterized queries only; constant-time comparison for any secret/
+  token check (not `===`/`!==`, which leaks timing information); standard HTTP
+  security headers; request body size limits; sanitized error responses that
+  never leak stack traces to the client.
+- Accessibility: ARIA labels on icon-only controls, live regions on streaming/
+  updating content, real dialog semantics (role="dialog", focus trap, Escape to
+  close, focus returns to the trigger element) on any modal, status conveyed as
+  text not just color, a skip-to-content link, and `prefers-reduced-motion`
+  support.
+- Efficiency: indexes on any DB column used for sorting/filtering at scale, and
+  cap unbounded queries (e.g. history endpoints) instead of returning full tables.
+
+DEPLOYMENT
+- Backend on a Node-hosting platform (e.g. Render) connected to a managed
+  Postgres instance (e.g. Supabase), with environment variables for the database
+  URL, AI API key, and access code — fail fast at boot if any are missing.
+  CORS should read the allowed frontend origin from an environment variable
+  rather than being hardcoded.
+- Frontend on a static host (e.g. Netlify/Vercel) with an SPA rewrite rule for
+  client-side routing, and the production environment file wired up via the
+  build tool's file-replacement mechanism so the production build actually
+  points at the deployed backend (verify this — it's a common silent bug).
+- A CI workflow that runs both test suites on every push/PR, separate from
+  whatever triggers the actual deploy.
+
+Work in small, verifiable increments — after each feature, run the relevant test
+suite before moving on, rather than writing everything then testing at the end.
+```
+
 ## Local Setup
 
 ```bash
