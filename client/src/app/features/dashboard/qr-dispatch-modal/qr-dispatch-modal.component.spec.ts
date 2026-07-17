@@ -36,6 +36,16 @@ describe('QrDispatchModalComponent', () => {
     }).compileComponents();
   });
 
+  afterEach(() => {
+    // The component re-parents its dialog root to document.body; clean up any
+    // leftover nodes between tests since fixture.destroy() isn't called here.
+    document.querySelectorAll('body > div').forEach(el => {
+      if (el.textContent?.includes('Ground Staff QR Dispatch')) {
+        el.remove();
+      }
+    });
+  });
+
   it('should create', () => {
     const fixture = TestBed.createComponent(QrDispatchModalComponent);
     expect(fixture.componentInstance).toBeTruthy();
@@ -47,14 +57,86 @@ describe('QrDispatchModalComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Trigger a crisis simulation');
   });
 
-  it('should list a button for each role once a simulation is active', () => {
+  it('should show an "Open QR Dispatch" trigger once a simulation is active', () => {
     storeStub.activeSimulationId.set(42);
     const fixture = TestBed.createComponent(QrDispatchModalComponent);
     fixture.detectChanges();
-    const buttons = fixture.nativeElement.querySelectorAll('button');
-    expect(buttons.length).toBe(fixture.componentInstance.roles.length);
-    expect(fixture.nativeElement.textContent).toContain('Security');
-    expect(fixture.nativeElement.textContent).toContain('Medical');
+    expect(fixture.nativeElement.textContent).toContain('Open QR Dispatch');
+  });
+
+  it('should list a button for each role once the dialog is opened', () => {
+    storeStub.activeSimulationId.set(42);
+    const fixture = TestBed.createComponent(QrDispatchModalComponent);
+    const comp = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const trigger = fixture.nativeElement.querySelector('button');
+    comp.openDialog({ currentTarget: trigger } as unknown as Event);
+    fixture.detectChanges();
+
+    // The dialog is re-parented to document.body (see ngAfterViewInit), so it
+    // no longer lives under fixture.nativeElement.
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+    const roleButtons = dialog.querySelectorAll('[role="group"] button');
+    expect(roleButtons.length).toBe(comp.roles.length);
+    expect(dialog.textContent).toContain('Security');
+    expect(dialog.textContent).toContain('Medical');
+  });
+
+  describe('dialog open/close', () => {
+    it('should be closed by default', () => {
+      storeStub.activeSimulationId.set(42);
+      const fixture = TestBed.createComponent(QrDispatchModalComponent);
+      fixture.detectChanges();
+      expect(fixture.componentInstance.isOpen()).toBe(false);
+      expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+    });
+
+    it('should open on trigger click and close on close-button click', () => {
+      storeStub.activeSimulationId.set(42);
+      const fixture = TestBed.createComponent(QrDispatchModalComponent);
+      const comp = fixture.componentInstance;
+      fixture.detectChanges();
+
+      const trigger = fixture.nativeElement.querySelector('button');
+      comp.openDialog({ currentTarget: trigger } as unknown as Event);
+      fixture.detectChanges();
+      expect(comp.isOpen()).toBe(true);
+
+      comp.close();
+      fixture.detectChanges();
+      expect(comp.isOpen()).toBe(false);
+    });
+
+    it('should close on Escape key', () => {
+      storeStub.activeSimulationId.set(42);
+      const fixture = TestBed.createComponent(QrDispatchModalComponent);
+      const comp = fixture.componentInstance;
+      fixture.detectChanges();
+
+      comp.openDialog({ currentTarget: fixture.nativeElement.querySelector('button') } as unknown as Event);
+      fixture.detectChanges();
+
+      comp.onDialogKeydown({ key: 'Escape', stopPropagation: () => {} } as unknown as KeyboardEvent);
+      expect(comp.isOpen()).toBe(false);
+    });
+
+    it('should reset selected role and QR state on close', () => {
+      storeStub.activeSimulationId.set(42);
+      const fixture = TestBed.createComponent(QrDispatchModalComponent);
+      const comp = fixture.componentInstance;
+      fixture.detectChanges();
+
+      comp.selectedRole.set('security');
+      comp.qrDataUrl.set('data:image/png;base64,FAKE');
+      comp.staffUrl.set('http://example.com/staff/1/security');
+
+      comp.close();
+
+      expect(comp.selectedRole()).toBeNull();
+      expect(comp.qrDataUrl()).toBeNull();
+      expect(comp.staffUrl()).toBe('');
+    });
   });
 
   describe('selectRole', () => {
