@@ -1,12 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { SimulationStore } from '../../../state/simulation.store';
 
 @Component({
   selector: 'app-crisis-timeline',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   template: `
     <div>
       <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Crisis Timeline</h2>
@@ -26,7 +25,8 @@ import { SimulationStore } from '../../../state/simulation.store';
 
       <div class="flex space-x-1.5">
         <input
-          [(ngModel)]="noteText"
+          [value]="noteText"
+          (input)="noteText = $any($event.target).value"
           [disabled]="!store.activeSimulationId()"
           placeholder="Add manual note..."
           class="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-[10px] text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500 disabled:opacity-50"

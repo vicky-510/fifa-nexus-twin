@@ -41,7 +41,10 @@ export class StadiumStore {
 
     this.refService.getStadiums().subscribe({
       next: (data) => this.stadiums.set(data),
-      error: () => this.error.set('Failed to load stadium data.'),
+      error: () => {
+        this.error.set('Failed to load stadium data.');
+        this.isLoading.set(false);
+      },
       complete: () => this.isLoading.set(false)
     });
 
