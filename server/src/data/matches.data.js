@@ -345,7 +345,7 @@ const MATCHES = [
     note: '🏆 Spain advance to the FINAL — Yamal brace seals it'
   },
 
-  // ─── SEMIFINAL 2 — 🔴 LIVE TODAY ─────────────────────────────────────────
+  // ─── SEMIFINAL 2 — completed ──────────────────────────────────────────────
   {
     id: 'sf_002',
     stage: 'Semifinal',
@@ -356,17 +356,15 @@ const MATCHES = [
     homeFlagEmoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     awayTeam: 'Argentina',
     awayFlagEmoji: '🇦🇷',
-    homeScore: null,
-    awayScore: null,
+    homeScore: 1,
+    awayScore: 2,
     stadiumId: 'mercedes_benz',
-    status: 'live',
-    currentMinute: 67,
-    liveScore: { home: 1, away: 0 },
+    status: 'completed',
     attendance: 68400,
-    note: '🔴 LIVE NOW — England vs Argentina Semifinal at Mercedes-Benz Stadium, Atlanta'
+    note: '🇦🇷 Argentina edge England 2-1 to reach the Final — Messi seals it late'
   },
 
-  // ─── 3RD PLACE PLAYOFF ────────────────────────────────────────────────────
+  // ─── 3RD PLACE PLAYOFF — 🔴 LIVE TODAY ───────────────────────────────────
   {
     id: 'tp_001',
     stage: '3rd Place Playoff',
@@ -375,14 +373,16 @@ const MATCHES = [
     timezone: 'EDT',
     homeTeam: 'France',
     homeFlagEmoji: '🇫🇷',
-    awayTeam: 'TBD (SF2 Loser)',
-    awayFlagEmoji: '❓',
+    awayTeam: 'England',
+    awayFlagEmoji: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     homeScore: null,
     awayScore: null,
     stadiumId: 'hard_rock',
-    status: 'upcoming',
-    attendance: null,
-    note: '3rd place match — France vs SF2 loser (England or Argentina)'
+    status: 'live',
+    currentMinute: 41,
+    liveScore: { home: 1, away: 1 },
+    attendance: 64100,
+    note: '🔴 LIVE NOW — 3rd Place Playoff: France vs England at Hard Rock Stadium, Miami'
   },
 
   // ─── THE FINAL 🏆 ─────────────────────────────────────────────────────────
@@ -394,14 +394,14 @@ const MATCHES = [
     timezone: 'EDT',
     homeTeam: 'Spain',
     homeFlagEmoji: '🇪🇸',
-    awayTeam: 'TBD (SF2 Winner)',
-    awayFlagEmoji: '❓',
+    awayTeam: 'Argentina',
+    awayFlagEmoji: '🇦🇷',
     homeScore: null,
     awayScore: null,
     stadiumId: 'metlife',
     status: 'upcoming-final',
     attendance: null,
-    note: '🏆 FIFA WORLD CUP 2026 FINAL — MetLife Stadium, East Rutherford, NJ'
+    note: '🏆 FIFA WORLD CUP 2026 FINAL — Spain vs Argentina, MetLife Stadium, East Rutherford, NJ'
   }
 ];
 
