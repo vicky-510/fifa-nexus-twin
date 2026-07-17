@@ -1,4 +1,4 @@
-import { Component, signal, inject, ElementRef, Renderer2, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, signal, inject, ElementRef, Renderer2, AfterViewInit, OnDestroy, ViewChild, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,7 +11,7 @@ import { AuthService } from '../../../core/services/auth.service';
   template: `
     <button
       type="button"
-      (click)="isOpen.set(true)"
+      (click)="openDialog($event)"
       class="px-4 py-2 border border-slate-700 hover:border-cyan-500 bg-slate-800/40 hover:bg-slate-800 rounded-lg text-xs font-semibold uppercase tracking-wider text-slate-300 transition-all cursor-pointer"
     >
       <span aria-hidden="true">🔑</span> Change Access Code
@@ -28,7 +28,15 @@ import { AuthService } from '../../../core/services/auth.service';
     <div #modalRoot>
       @if (isOpen()) {
         <div class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" (click)="close()">
-          <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="changeAccessCodeHeading" (click)="$event.stopPropagation()">
+          <div
+            #dialogEl
+            class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="changeAccessCodeHeading"
+            (click)="$event.stopPropagation()"
+            (keydown)="onDialogKeydown($event)"
+          >
             <h2 id="changeAccessCodeHeading" class="text-lg font-bold text-white mb-1">Rotate Shared Access Code</h2>
             <p class="text-xs text-slate-400 mb-5">
               You choose the new code — it's never shown or transmitted anywhere else, so relay it to the rest of the ops team yourself (radio, shift briefing, etc.). This will log everyone out, including you.
@@ -38,6 +46,7 @@ import { AuthService } from '../../../core/services/auth.service';
               <div>
                 <label for="currentCode" class="block text-xs font-medium text-slate-300 mb-1">Current Code</label>
                 <input
+                  #firstFocusable
                   id="currentCode"
                   type="password"
                   [(ngModel)]="currentCode"
@@ -116,6 +125,8 @@ export class ChangeAccessCodeComponent implements AfterViewInit, OnDestroy {
   private renderer = inject(Renderer2);
 
   @ViewChild('modalRoot') modalRoot!: ElementRef<HTMLElement>;
+  @ViewChild('dialogEl') dialogEl?: ElementRef<HTMLElement>;
+  @ViewChild('firstFocusable') firstFocusable?: ElementRef<HTMLElement>;
 
   isOpen = signal(false);
   isLoading = signal(false);
@@ -125,6 +136,22 @@ export class ChangeAccessCodeComponent implements AfterViewInit, OnDestroy {
   currentCode = '';
   newCode = '';
   confirmCode = '';
+
+  /** Element that opened the dialog, so focus can return to it on close. */
+  private triggerElement: HTMLElement | null = null;
+
+  constructor() {
+    // Focus management: move focus into the dialog when it opens, and back
+    // to whatever opened it once it closes.
+    effect(() => {
+      if (this.isOpen()) {
+        setTimeout(() => this.firstFocusable?.nativeElement.focus());
+      } else if (this.triggerElement) {
+        this.triggerElement.focus();
+        this.triggerElement = null;
+      }
+    });
+  }
 
   ngAfterViewInit(): void {
     // Re-parent to <body> once so the overlay's `position: fixed` is relative to
@@ -136,6 +163,11 @@ export class ChangeAccessCodeComponent implements AfterViewInit, OnDestroy {
     this.modalRoot?.nativeElement?.remove();
   }
 
+  openDialog(event: Event): void {
+    this.triggerElement = event.currentTarget as HTMLElement;
+    this.isOpen.set(true);
+  }
+
   close(): void {
     this.isOpen.set(false);
     this.currentCode = '';
@@ -143,6 +175,50 @@ export class ChangeAccessCodeComponent implements AfterViewInit, OnDestroy {
     this.confirmCode = '';
     this.errorMessage.set(null);
     this.successMessage.set(null);
+  }
+
+  onDialogKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      this.close();
+      return;
+    }
+    if (event.key === 'Tab') {
+      this.trapFocus(event);
+    }
+  }
+
+  /** Keeps Tab / Shift+Tab cycling within the dialog while it's open. */
+  private trapFocus(event: KeyboardEvent): void {
+    const dialog = this.dialogEl?.nativeElement;
+    if (!dialog) {
+      return;
+    }
+
+    const focusable = Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    );
+    if (focusable.length === 0) {
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+
+    if (event.shiftKey) {
+      if (active === first || !active || !dialog.contains(active)) {
+        event.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (active === last || !active || !dialog.contains(active)) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
   }
 
   onSubmit(): void {

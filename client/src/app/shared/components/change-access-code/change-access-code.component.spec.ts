@@ -150,4 +150,103 @@ describe('ChangeAccessCodeComponent', () => {
 
     expect(component.errorMessage()).toBe('Failed to change access code.');
   });
+
+  describe('focus management', () => {
+    it('should move focus to the first input once the dialog opens', () => {
+      jasmine.clock().install();
+      try {
+        const fixture = createComponent();
+        const triggerButton: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+        triggerButton.focus();
+
+        triggerButton.click();
+        fixture.detectChanges();
+        jasmine.clock().tick(0);
+
+        const firstInput = document.getElementById('currentCode');
+        expect(document.activeElement).toBe(firstInput);
+      } finally {
+        jasmine.clock().uninstall();
+      }
+    });
+
+    it('should close the dialog on Escape', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      const triggerButton: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+
+      triggerButton.click();
+      fixture.detectChanges();
+      expect(component.isOpen()).toBe(true);
+
+      const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+      dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+      expect(component.isOpen()).toBe(false);
+    });
+
+    it('should return focus to the trigger button after closing', () => {
+      jasmine.clock().install();
+      try {
+        const fixture = createComponent();
+        const component = fixture.componentInstance;
+        const triggerButton: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+        triggerButton.focus();
+
+        triggerButton.click();
+        fixture.detectChanges();
+        jasmine.clock().tick(0);
+
+        component.close();
+        fixture.detectChanges();
+        jasmine.clock().tick(0);
+
+        expect(document.activeElement).toBe(triggerButton);
+      } finally {
+        jasmine.clock().uninstall();
+      }
+    });
+
+    it('should wrap focus from the last to the first focusable element on Tab', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      const triggerButton: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+
+      triggerButton.click();
+      fixture.detectChanges();
+
+      const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+      const submitButton = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+      submitButton.focus();
+      expect(document.activeElement).toBe(submitButton);
+
+      const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+      dialog.dispatchEvent(tabEvent);
+
+      const firstInput = document.getElementById('currentCode');
+      expect(document.activeElement).toBe(firstInput);
+      expect(tabEvent.defaultPrevented).toBe(true);
+    });
+
+    it('should wrap focus from the first to the last focusable element on Shift+Tab', () => {
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+      const triggerButton: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+
+      triggerButton.click();
+      fixture.detectChanges();
+
+      const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
+      const firstInput = document.getElementById('currentCode') as HTMLInputElement;
+      firstInput.focus();
+      expect(document.activeElement).toBe(firstInput);
+
+      const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
+      dialog.dispatchEvent(tabEvent);
+
+      const submitButton = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+      expect(document.activeElement).toBe(submitButton);
+      expect(tabEvent.defaultPrevented).toBe(true);
+    });
+  });
 });

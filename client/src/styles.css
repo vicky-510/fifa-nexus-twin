@@ -113,3 +113,49 @@ body.high-contrast .text-red-400 {
   background-size: 100% 2px, 3px 100%;
   pointer-events: none;
 }
+
+/* Visible keyboard-focus indicator, consistent with the app's cyberpunk theme.
+   Several interactive elements use Tailwind's `focus:outline-none` utility, which
+   would otherwise suppress the native focus ring entirely for keyboard users. */
+:focus-visible {
+  outline: 2px solid var(--color-nexus-primary, #00D4FF) !important;
+  outline-offset: 2px !important;
+}
+
+/* Screen-reader-only utility used by skip links: visually hidden until focused. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.focus\:not-sr-only:focus {
+  position: fixed;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Respect the user's OS-level preference to minimize motion: shorten/disable
+   decorative animations and transitions (scanlines, pulses, hover transitions, etc.)
+   across the whole app. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

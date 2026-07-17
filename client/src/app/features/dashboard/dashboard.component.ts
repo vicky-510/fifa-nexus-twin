@@ -40,8 +40,15 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
   template: `
     <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
 
+      <a
+        href="#main-content"
+        class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-cyan-500 focus:text-slate-950 focus:rounded-lg focus:text-sm focus:font-bold focus:uppercase focus:tracking-wider"
+      >
+        Skip to main content
+      </a>
+
       <!-- Top Command Header -->
-      <header class="bg-slate-900/40 border-b border-slate-800/80 px-6 py-4 flex flex-col gap-3 backdrop-blur shadow-sm">
+      <header role="banner" class="bg-slate-900/40 border-b border-slate-800/80 px-6 py-4 flex flex-col gap-3 backdrop-blur shadow-sm">
         <div class="flex flex-col lg:flex-row justify-between items-center gap-4">
           <div class="flex items-center space-x-3.5 self-start lg:self-auto">
             <button type="button" (click)="goToSelector()" aria-label="Go to venue selector" class="w-10 h-10 shrink-0 rounded-lg bg-amber-500 flex items-center justify-center font-black text-slate-950 text-xl tracking-tighter cursor-pointer">SP</button>
@@ -80,7 +87,7 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
       </header>
 
       <!-- Main Dashboard Grid Layout -->
-      <main class="flex-1 max-w-[1600px] w-full mx-auto p-3 sm:p-6 grid grid-cols-1 xl:grid-cols-4 gap-4 sm:gap-6">
+      <main id="main-content" role="main" tabindex="-1" class="flex-1 max-w-[1600px] w-full mx-auto p-3 sm:p-6 grid grid-cols-1 xl:grid-cols-4 gap-4 sm:gap-6">
 
         <!-- Sidebar Log: Historical Runs (1/4 Width) -->
         <section class="bg-slate-900/60 border border-slate-800 rounded-xl p-5 backdrop-blur shadow-lg flex flex-col h-full">
@@ -168,7 +175,7 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
 
       </main>
 
-      <footer class="bg-slate-900/30 border-t border-slate-800/80 px-6 py-2 flex justify-between text-[10px] text-slate-500 font-mono">
+      <footer role="contentinfo" class="bg-slate-900/30 border-t border-slate-800/80 px-6 py-2 flex justify-between text-[10px] text-slate-500 font-mono">
         <span>SECURITY ENCRYPTED GATEWAY</span>
         <span>DATABASE STATUS: SUPABASE POOL OK</span>
       </footer>
