@@ -55,7 +55,7 @@ This is "logical decision making based on user context" applied literally: the A
 
 ## The Prompt
 
-This project was built with an AI coding assistant (Claude Code). The prompt below is the one that would reproduce this project's scope and quality bar from scratch — pin the stack, the data model, and the non-functional bar explicitly, or an AI will default to a shallow demo instead of a submission-ready build.
+This project was built with an AI coding assistant. This is the prompt for building it:
 
 ```
 Build "StadiumPulse" — a GenAI-powered crisis simulation and command dashboard for
@@ -104,14 +104,13 @@ CORE BEHAVIOR
   operator generate a QR code (as a real overlay dialog, not an inline element)
   that encodes a link to that public view, so staff scan it with their own phone.
 
-NON-FUNCTIONAL BAR (do not treat these as optional polish — they are graded)
+NON-FUNCTIONAL BAR
 - Testing: unit/integration tests for every backend endpoint (auth, all CRUD/
   trigger/streaming routes, error paths) and every frontend component, service,
-  guard, interceptor, and state store — not just the "happy path" files.
+  guard, interceptor, and state store.
 - Security: parameterized queries only; constant-time comparison for any secret/
-  token check (not `===`/`!==`, which leaks timing information); standard HTTP
-  security headers; request body size limits; sanitized error responses that
-  never leak stack traces to the client.
+  token check; standard HTTP security headers; request body size limits;
+  sanitized error responses that never leak stack traces to the client.
 - Accessibility: ARIA labels on icon-only controls, live regions on streaming/
   updating content, real dialog semantics (role="dialog", focus trap, Escape to
   close, focus returns to the trigger element) on any modal, status conveyed as
@@ -123,18 +122,15 @@ NON-FUNCTIONAL BAR (do not treat these as optional polish — they are graded)
 DEPLOYMENT
 - Backend on a Node-hosting platform (e.g. Render) connected to a managed
   Postgres instance (e.g. Supabase), with environment variables for the database
-  URL, AI API key, and access code — fail fast at boot if any are missing.
-  CORS should read the allowed frontend origin from an environment variable
-  rather than being hardcoded.
+  URL, AI API key, and access code — fail fast at boot if any are missing. CORS
+  should read the allowed frontend origin from an environment variable rather
+  than being hardcoded.
 - Frontend on a static host (e.g. Netlify/Vercel) with an SPA rewrite rule for
   client-side routing, and the production environment file wired up via the
   build tool's file-replacement mechanism so the production build actually
-  points at the deployed backend (verify this — it's a common silent bug).
+  points at the deployed backend.
 - A CI workflow that runs both test suites on every push/PR, separate from
   whatever triggers the actual deploy.
-
-Work in small, verifiable increments — after each feature, run the relevant test
-suite before moving on, rather than writing everything then testing at the end.
 ```
 
 ## Local Setup
