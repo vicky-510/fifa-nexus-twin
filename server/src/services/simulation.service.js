@@ -98,9 +98,9 @@ const SimulationService = {
    * @param {string} [stadiumId]
    * @returns {Promise<Array>}
    */
-  async getHistory(scenario, stadiumId) {
+  async getHistory(scenario, stadiumId, limit) {
     logger.info(`Fetching simulation history (scenario: ${scenario || 'none'}, stadium: ${stadiumId || 'none'})`);
-    return SimulationModel.getHistory(scenario, stadiumId);
+    return SimulationModel.getHistory(scenario, stadiumId, limit);
   },
 
   /**

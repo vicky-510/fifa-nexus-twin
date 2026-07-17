@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const errorHandler = require('./middleware/errorHandler.middleware');
 const authRoutes = require('./routes/auth.routes');
 const simulationRoutes = require('./routes/simulation.routes');
@@ -7,6 +8,8 @@ const referenceRoutes = require('./routes/reference.routes');
 const logger = require('./utils/logger');
 
 const app = express();
+
+app.use(helmet());
 
 // Determine allowed CORS origins
 const allowedOrigins = [
@@ -41,7 +44,9 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json());
+// Simulation payloads are small JSON bodies; capping size limits abuse via
+// oversized requests without affecting any legitimate use of this API.
+app.use(express.json({ limit: '100kb' }));
 
 // Simple incoming request log
 app.use((req, res, next) => {

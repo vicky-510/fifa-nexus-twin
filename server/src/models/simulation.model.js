@@ -68,12 +68,15 @@ const SimulationModel = {
   },
 
   /**
-   * Fetches simulation history, with optional scenario/stadium filtering
+   * Fetches simulation history, with optional scenario/stadium filtering.
+   * Always LIMITed — the dashboard only renders recent runs, and an unbounded
+   * SELECT over a growing table would make every load slower over time.
    * @param {string} [scenario] - Whitelisted scenario filter
    * @param {string} [stadiumId]
+   * @param {number} [limit] - Max rows to return (default 50, capped at 200)
    * @returns {Promise<Array>} List of simulation rows
    */
-  async getHistory(scenario, stadiumId) {
+  async getHistory(scenario, stadiumId, limit = 50) {
     let query = 'SELECT id, scenario, result, stadium_id, match_id, severity, escalated_from, timeline, created_at FROM simulations';
     const conditions = [];
     const values = [];
@@ -90,7 +93,9 @@ const SimulationModel = {
       query += ' WHERE ' + conditions.join(' AND ');
     }
 
-    query += ' ORDER BY created_at DESC';
+    const cappedLimit = Math.min(Math.max(parseInt(limit, 10) || 50, 1), 200);
+    values.push(cappedLimit);
+    query += ` ORDER BY created_at DESC LIMIT $${values.length}`;
 
     try {
       const { rows } = await pool.query(query, values);

@@ -21,8 +21,8 @@ const SimulationController = {
    */
   async getHistory(req, res, next) {
     try {
-      const { scenario, stadiumId } = req.query;
-      const history = await SimulationService.getHistory(scenario, stadiumId);
+      const { scenario, stadiumId, limit } = req.query;
+      const history = await SimulationService.getHistory(scenario, stadiumId, limit);
       return res.json(history);
     } catch (err) {
       next(err);
