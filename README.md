@@ -1,6 +1,10 @@
 # StadiumPulse — FIFA Nexus Twin
 
+![Test](https://github.com/vicky-510/fifa-nexus-twin/actions/workflows/test.yml/badge.svg)
+
 A GenAI-powered crisis simulation and command dashboard for FIFA World Cup 2026 venue operations staff.
+
+**Live backend:** https://fifa-nexus-twin.onrender.com
 
 ## Chosen Vertical
 
