@@ -13,13 +13,14 @@ import { Stadium } from '../../../core/services/reference.service';
       <div class="flex justify-between items-center mb-4">
         <div>
           <h2 class="text-md font-bold uppercase tracking-wider text-slate-100 flex items-center space-x-2">
-            <span>🗺️</span>
+            <span aria-hidden="true">🗺️</span>
             <span>{{ stadium ? stadium.name : 'Nexus Twin Venue Schematic' }}</span>
           </h2>
           <p class="text-[10px] text-slate-400">{{ stadium ? mapTypeLabel(stadium.mapType) : 'Live operational command view' }}</p>
         </div>
 
         <span
+          role="status"
           [class.bg-emerald-500\/10]="!store.activeScenario()"
           [class.text-emerald-400]="!store.activeScenario()"
           [class.border-emerald-500\/30]="!store.activeScenario()"
@@ -34,7 +35,7 @@ import { Stadium } from '../../../core/services/reference.service';
 
       <div class="flex-1 bg-slate-950/80 rounded-lg border border-slate-800/60 p-2 flex items-center justify-center min-h-[280px] relative">
         @if (stadium) {
-          <svg viewBox="0 0 800 500" class="w-full h-full max-h-[380px]" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 800 500" class="w-full h-full max-h-[380px]" role="img" [attr.aria-label]="'Venue schematic map of ' + stadium.name" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
                 <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(51, 65, 85, 0.15)" stroke-width="1"/>

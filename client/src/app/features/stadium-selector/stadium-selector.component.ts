@@ -24,15 +24,18 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
         </div>
         <div class="flex flex-wrap items-center justify-center lg:justify-end gap-2">
           <button
+            type="button"
             (click)="goToOverview()"
             class="px-3 sm:px-4 py-2 border border-slate-700 hover:border-cyan-500 bg-slate-800/40 hover:bg-slate-800 rounded-lg text-xs font-semibold uppercase tracking-wider text-slate-300 transition-all cursor-pointer"
           >
-            🌐 Global Overview
+            <span aria-hidden="true">🌐</span> Global Overview
           </button>
           <app-change-access-code></app-change-access-code>
           <app-accessibility-toggle></app-accessibility-toggle>
           <button
+            type="button"
             (click)="onLogout()"
+            aria-label="Log out of command center"
             class="px-3 sm:px-4 py-2 border border-slate-700 hover:border-slate-500 bg-slate-800/40 hover:bg-slate-800 rounded-lg text-xs font-semibold uppercase tracking-wider text-slate-300 transition-all cursor-pointer"
           >
             Disconnect
@@ -44,7 +47,7 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
 
         <!-- North America Map -->
         <div class="relative bg-slate-900/40 border border-slate-800 rounded-2xl p-3 sm:p-6 backdrop-blur shadow-xl">
-          <svg viewBox="0 0 79.39 100" class="w-full h-[340px] sm:h-[480px] absolute inset-0" preserveAspectRatio="none">
+          <svg viewBox="0 0 79.39 100" class="w-full h-[340px] sm:h-[480px] absolute inset-0" preserveAspectRatio="none" role="img" aria-label="Map of North America showing World Cup 2026 stadium locations">
             <defs>
               <pattern id="grid" width="4" height="5" patternUnits="userSpaceOnUse">
                 <path d="M 4 0 L 0 0 0 5" fill="none" stroke="#00D4FF" stroke-width="0.15"/>
@@ -67,14 +70,19 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
           <div class="relative w-full h-[340px] sm:h-[480px]">
             @for (stadium of store.stadiums(); track stadium.id) {
               <button
+                type="button"
                 (click)="selectStadium(stadium)"
                 (mouseenter)="hoveredStadium.set(stadium)"
                 (mouseleave)="hoveredStadium.set(null)"
+                (focus)="hoveredStadium.set(stadium)"
+                (blur)="hoveredStadium.set(null)"
+                [attr.aria-label]="stadium.name + ' — ' + stadium.status"
                 class="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
                 [style.left.%]="stadium.mapX"
                 [style.top.%]="stadium.mapY"
               >
                 <span
+                  aria-hidden="true"
                   class="block w-3.5 h-3.5 rounded-full ring-2 ring-slate-950 transition-transform group-hover:scale-150"
                   [class.animate-pulse]="stadium.status === 'live'"
                   [style.background]="stadium.color"
@@ -86,18 +94,18 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
 
           <!-- Hover Tooltip -->
           @if (hoveredStadium(); as s) {
-            <div class="absolute bottom-3 left-3 right-3 sm:right-auto sm:bottom-6 sm:left-6 bg-slate-950/95 border border-slate-700 rounded-xl p-3 sm:p-4 shadow-2xl sm:max-w-xs z-10">
-              <div class="font-bold text-white text-sm mb-1">{{ s.flag }} {{ s.name }}</div>
-              <div class="text-xs text-slate-400 mb-2">📍 {{ s.city }} · 👥 {{ s.capacity.toLocaleString() }}</div>
+            <div class="absolute bottom-3 left-3 right-3 sm:right-auto sm:bottom-6 sm:left-6 bg-slate-950/95 border border-slate-700 rounded-xl p-3 sm:p-4 shadow-2xl sm:max-w-xs z-10" role="status">
+              <div class="font-bold text-white text-sm mb-1"><span aria-hidden="true">{{ s.flag }}</span> {{ s.name }}</div>
+              <div class="text-xs text-slate-400 mb-2"><span aria-hidden="true">📍</span> {{ s.city }} · <span aria-hidden="true">👥</span> {{ s.capacity.toLocaleString() }}</div>
               <div class="text-xs text-amber-400">{{ s.role }}</div>
             </div>
           }
 
           <!-- Legend -->
           <div class="absolute top-3 right-3 sm:top-6 sm:right-6 bg-slate-950/70 border border-slate-800 rounded-lg p-2 sm:p-3 text-[9px] sm:text-[10px] space-y-1 sm:space-y-1.5">
-            <div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span><span>Live now</span></div>
-            <div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full bg-amber-500"></span><span>Upcoming / Final</span></div>
-            <div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Complete</span></div>
+            <div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true"></span><span>Live now</span></div>
+            <div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true"></span><span>Upcoming / Final</span></div>
+            <div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true"></span><span>Complete</span></div>
           </div>
         </div>
 
@@ -105,12 +113,14 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           @for (stadium of store.stadiums(); track stadium.id) {
             <button
+              type="button"
               (click)="selectStadium(stadium)"
+              [attr.aria-label]="'View ' + stadium.name + ' dashboard'"
               class="text-left p-3.5 rounded-xl border border-slate-800 bg-slate-900/50 hover:border-cyan-500/60 hover:bg-slate-900 transition-all cursor-pointer"
             >
               <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-white">{{ stadium.flag }} {{ stadium.shortName }}</span>
-                <span class="w-2 h-2 rounded-full" [style.background]="stadium.color"></span>
+                <span class="text-xs font-bold text-white"><span aria-hidden="true">{{ stadium.flag }}</span> {{ stadium.shortName }}</span>
+                <span class="w-2 h-2 rounded-full" aria-hidden="true" [style.background]="stadium.color"></span>
               </div>
               <div class="text-[10px] text-slate-500">{{ stadium.city }}</div>
             </button>

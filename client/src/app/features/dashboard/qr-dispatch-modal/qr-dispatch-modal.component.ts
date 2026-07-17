@@ -15,28 +15,31 @@ interface RoleOption {
   imports: [CommonModule],
   template: `
     <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5 backdrop-blur shadow-lg">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">📱 Ground Staff QR Dispatch</h2>
+      <h2 id="qrDispatchHeading" class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3"><span aria-hidden="true">📱</span> Ground Staff QR Dispatch</h2>
 
       @if (!store.activeSimulationId()) {
         <p class="text-[10px] text-slate-600 italic">Trigger a crisis simulation to dispatch mobile directive cards.</p>
       } @else {
-        <div class="grid grid-cols-2 gap-2 mb-3">
+        <div class="grid grid-cols-2 gap-2 mb-3" role="group" aria-labelledby="qrDispatchHeading">
           @for (role of roles; track role.id) {
             <button
+              type="button"
               (click)="selectRole(role.id)"
+              [attr.aria-pressed]="selectedRole() === role.id"
+              [attr.aria-label]="'Generate QR dispatch for ' + role.label"
               [class.border-cyan-500]="selectedRole() === role.id"
               [class.bg-cyan-500\/10]="selectedRole() === role.id"
               [class.border-slate-800]="selectedRole() !== role.id"
               class="p-2.5 border rounded-lg text-[10px] font-semibold text-slate-300 hover:border-slate-600 transition-all cursor-pointer"
             >
-              {{ role.icon }} {{ role.label }}
+              <span aria-hidden="true">{{ role.icon }}</span> {{ role.label }}
             </button>
           }
         </div>
 
         @if (qrDataUrl(); as qr) {
-          <div class="bg-white rounded-lg p-3 flex flex-col items-center">
-            <img [src]="qr" alt="QR dispatch code" class="w-32 h-32" />
+          <div class="bg-white rounded-lg p-3 flex flex-col items-center" role="status">
+            <img [src]="qr" [attr.alt]="'QR dispatch code for ' + (selectedRole() || 'ground staff') + ' role'" class="w-32 h-32" />
             <p class="text-[9px] text-slate-700 mt-2 font-mono break-all text-center">{{ staffUrl() }}</p>
           </div>
         }

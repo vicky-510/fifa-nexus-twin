@@ -44,7 +44,7 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
       <header class="bg-slate-900/40 border-b border-slate-800/80 px-6 py-4 flex flex-col gap-3 backdrop-blur shadow-sm">
         <div class="flex flex-col lg:flex-row justify-between items-center gap-4">
           <div class="flex items-center space-x-3.5 self-start lg:self-auto">
-            <button (click)="goToSelector()" class="w-10 h-10 shrink-0 rounded-lg bg-amber-500 flex items-center justify-center font-black text-slate-950 text-xl tracking-tighter cursor-pointer">SP</button>
+            <button type="button" (click)="goToSelector()" aria-label="Go to venue selector" class="w-10 h-10 shrink-0 rounded-lg bg-amber-500 flex items-center justify-center font-black text-slate-950 text-xl tracking-tighter cursor-pointer">SP</button>
             <div>
               <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white leading-none">StadiumPulse Command Centre</h1>
               <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">FIFA World Cup 2026 Operations HQ</p>
@@ -53,15 +53,18 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
 
           <div class="flex flex-wrap items-center justify-center lg:justify-end gap-2">
             <button
+              type="button"
               (click)="goToSelector()"
               class="px-3 sm:px-4 py-2 border border-slate-700 hover:border-cyan-500 bg-slate-800/40 hover:bg-slate-800 rounded-lg text-xs font-semibold uppercase tracking-wider text-slate-300 transition-all cursor-pointer"
             >
-              🗺️ Map View
+              <span aria-hidden="true">🗺️</span> Map View
             </button>
             <app-change-access-code></app-change-access-code>
             <app-accessibility-toggle></app-accessibility-toggle>
             <button
+              type="button"
               (click)="onLogout()"
+              aria-label="Log out of command center"
               class="px-3 sm:px-4 py-2 border border-slate-700 hover:border-slate-500 bg-slate-800/40 hover:bg-slate-800 rounded-lg text-xs font-semibold uppercase tracking-wider text-slate-300 transition-all flex items-center space-x-1.5 cursor-pointer"
             >
               <span>Disconnect</span>
@@ -88,8 +91,11 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
 
           <div class="flex-1 overflow-y-auto space-y-2.5 max-h-[300px] xl:max-h-[none] pr-1">
             <button
+              type="button"
               *ngFor="let item of store.history()"
               (click)="store.selectRecord(item)"
+              [attr.aria-pressed]="store.activeSimulationId() === item.id"
+              [attr.aria-label]="'Load simulation record: ' + item.scenario + ' at ' + formatDate(item.created_at)"
               [class.bg-slate-850]="store.activeSimulationId() === item.id"
               [class.border-slate-700]="store.activeSimulationId() === item.id"
               [class.border-slate-850]="store.activeSimulationId() !== item.id"
@@ -106,8 +112,8 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
               </p>
             </button>
 
-            <div *ngIf="store.isLoading() && store.history().length === 0" class="text-center py-8 text-xs text-slate-500 flex flex-col items-center justify-center space-y-2">
-              <span class="animate-spin rounded-full h-5 w-5 border-2 border-slate-500 border-t-transparent"></span>
+            <div *ngIf="store.isLoading() && store.history().length === 0" role="status" aria-live="polite" class="text-center py-8 text-xs text-slate-500 flex flex-col items-center justify-center space-y-2">
+              <span class="animate-spin rounded-full h-5 w-5 border-2 border-slate-500 border-t-transparent" aria-hidden="true"></span>
               <span>Syncing Postgres Logs...</span>
             </div>
 

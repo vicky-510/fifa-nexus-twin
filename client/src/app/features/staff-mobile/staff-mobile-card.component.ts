@@ -18,9 +18,9 @@ const ROLE_TO_AGENCY: Record<string, { key: keyof SimulationResult; label: strin
   template: `
     <div class="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4 font-sans">
       @if (record(); as r) {
-        <div class="w-full max-w-sm bg-slate-900 border-2 rounded-2xl overflow-hidden shadow-2xl" [class]="severityBorder(r.severity)">
+        <div class="w-full max-w-sm bg-slate-900 border-2 rounded-2xl overflow-hidden shadow-2xl" [class]="severityBorder(r.severity)" role="region" aria-live="polite" aria-label="Staff directive card">
           <div class="p-4" [class]="severityBg(r.severity)">
-            <div class="text-white font-black text-lg leading-tight">{{ severityIcon(r.severity) }} {{ r.severity }} — {{ r.scenarioLabel }}</div>
+            <div class="text-white font-black text-lg leading-tight"><span aria-hidden="true">{{ severityIcon(r.severity) }}</span> {{ r.severity }} — {{ r.scenarioLabel }}</div>
             <div class="text-white/80 text-xs mt-1">{{ r.stadiumName }}{{ r.gate ? ' | ' + r.gate : '' }}</div>
             <div class="text-white/60 text-[10px] mt-1">Issued: {{ formatTime(r.createdAt) }}</div>
           </div>
@@ -28,29 +28,29 @@ const ROLE_TO_AGENCY: Record<string, { key: keyof SimulationResult; label: strin
           <div class="p-4 space-y-3">
             <div class="text-center">
               <span class="text-[10px] uppercase tracking-widest text-slate-500">Your Role</span>
-              <div class="text-lg font-bold text-white">{{ roleInfo.icon }} {{ roleInfo.label }}</div>
+              <div class="text-lg font-bold text-white"><span aria-hidden="true">{{ roleInfo.icon }}</span> {{ roleInfo.label }}</div>
             </div>
 
             <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-3">
-              <p class="text-sm text-slate-200 leading-relaxed">▶ {{ r.result[roleInfo.key] }}</p>
+              <p class="text-sm text-slate-200 leading-relaxed"><span aria-hidden="true">▶</span> {{ r.result[roleInfo.key] }}</p>
             </div>
 
             <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-3">
-              <span class="text-[10px] uppercase tracking-widest text-slate-500 block mb-1">📢 Say to crowd</span>
+              <span class="text-[10px] uppercase tracking-widest text-slate-500 block mb-1"><span aria-hidden="true">📢</span> Say to crowd</span>
               <p class="text-xs text-slate-300">EN: "{{ r.result.multilingualScripts.en }}"</p>
               <p class="text-xs text-slate-300 mt-1">ES: "{{ r.result.multilingualScripts.es }}"</p>
             </div>
 
             <div class="flex justify-between items-center pt-2 border-t border-slate-800 text-[10px] text-slate-500">
-              <span>⚠️ Severity: {{ r.severity }}</span>
-              <span>🕐 Next update in: {{ secondsToRefresh() }}s</span>
+              <span><span aria-hidden="true">⚠️</span> Severity: {{ r.severity }}</span>
+              <span><span aria-hidden="true">🕐</span> Next update in: {{ secondsToRefresh() }}s</span>
             </div>
           </div>
         </div>
       } @else if (error()) {
-        <div class="text-center text-slate-500 text-sm">{{ error() }}</div>
+        <div class="text-center text-slate-500 text-sm" role="alert">{{ error() }}</div>
       } @else {
-        <div class="text-center text-slate-500 text-sm animate-pulse">Loading directive card...</div>
+        <div class="text-center text-slate-500 text-sm animate-pulse" role="status" aria-live="polite">Loading directive card...</div>
       }
     </div>
   `

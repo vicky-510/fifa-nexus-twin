@@ -13,17 +13,18 @@ import { Stadium } from '../../core/services/reference.service';
 
       <header class="bg-slate-900/40 border-b border-slate-800/80 px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 backdrop-blur">
         <div class="flex items-center space-x-3.5 self-start sm:self-auto">
-          <button (click)="goBack()" class="w-10 h-10 shrink-0 rounded-lg bg-cyan-500 flex items-center justify-center font-black text-slate-950 text-xl tracking-tighter cursor-pointer">🌐</button>
+          <button type="button" (click)="goBack()" aria-label="Back to venue selector" class="w-10 h-10 shrink-0 rounded-lg bg-cyan-500 flex items-center justify-center font-black text-slate-950 text-xl tracking-tighter cursor-pointer"><span aria-hidden="true">🌐</span></button>
           <div>
             <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white leading-none">Global Command Overview</h1>
             <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">FIFA World Cup 2026 — All 16 Venues</p>
           </div>
         </div>
         <button
+          type="button"
           (click)="goBack()"
           class="px-3 sm:px-4 py-2 border border-slate-700 hover:border-cyan-500 bg-slate-800/40 hover:bg-slate-800 rounded-lg text-xs font-semibold uppercase tracking-wider text-slate-300 transition-all cursor-pointer"
         >
-          ← Back to Venue Selector
+          <span aria-hidden="true">←</span> Back to Venue Selector
         </button>
       </header>
 
@@ -31,13 +32,15 @@ import { Stadium } from '../../core/services/reference.service';
         @for (group of countryGroups(); track group.code) {
           <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
             <h2 class="text-sm font-bold uppercase tracking-wider text-white mb-4 flex items-center space-x-2">
-              <span>{{ group.flag }}</span><span>{{ group.name }}</span>
+              <span aria-hidden="true">{{ group.flag }}</span><span>{{ group.name }}</span>
               <span class="text-[10px] text-slate-500 font-normal">({{ group.stadiums.length }} venues)</span>
             </h2>
             <div class="space-y-2">
               @for (stadium of group.stadiums; track stadium.id) {
                 <button
+                  type="button"
                   (click)="goToStadium(stadium)"
+                  [attr.aria-label]="'View ' + stadium.shortName + ' dashboard — status ' + statusBadge(stadium.status)"
                   class="w-full text-left flex items-center justify-between p-2.5 rounded-lg hover:bg-slate-800/60 transition-all cursor-pointer group"
                 >
                   <span class="text-xs text-slate-300 group-hover:text-white">{{ stadium.shortName }}</span>

@@ -11,7 +11,7 @@ type Lang = 'en' | 'es' | 'fr';
   template: `
     <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5 backdrop-blur shadow-lg">
       <h2 class="text-md font-bold uppercase tracking-wider text-slate-100 mb-1 flex items-center space-x-2">
-        <span>📢</span><span>Stadium PA System — Broadcast Ready</span>
+        <span aria-hidden="true">📢</span><span>Stadium PA System — Broadcast Ready</span>
       </h2>
       <p class="text-[10px] text-slate-400 mb-4">Simulated public announcement dispatch</p>
 
@@ -20,38 +20,41 @@ type Lang = 'en' | 'es' | 'fr';
           @for (lang of langs; track lang) {
             <div class="bg-slate-950/40 border border-slate-800 rounded-lg p-3 flex items-center justify-between gap-3">
               <div class="min-w-0">
-                <span class="text-[10px] font-bold uppercase text-slate-400">{{ langFlag(lang) }} {{ lang }}</span>
+                <span class="text-[10px] font-bold uppercase text-slate-400"><span aria-hidden="true">{{ langFlag(lang) }}</span> {{ lang }}</span>
                 <p class="text-xs text-slate-300 truncate">"{{ result.multilingualScripts[lang] }}"</p>
               </div>
               <button
+                type="button"
                 (click)="broadcast(lang, result.multilingualScripts[lang])"
                 [disabled]="liveLang() === lang"
+                [attr.aria-label]="'Broadcast ' + lang + ' announcement'"
                 class="shrink-0 px-3 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 disabled:opacity-50 border border-cyan-500/30 text-cyan-400 rounded text-[10px] font-bold uppercase cursor-pointer transition-all"
               >
-                ▶ Broadcast
+                <span aria-hidden="true">▶</span> Broadcast
               </button>
             </div>
           }
         </div>
 
         <button
+          type="button"
           (click)="broadcastAll(result.multilingualScripts)"
           [disabled]="!!liveLang()"
           class="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider cursor-pointer transition-all"
         >
-          🔊 Broadcast All Languages Simultaneously
+          <span aria-hidden="true">🔊</span> Broadcast All Languages Simultaneously
         </button>
 
         @if (liveLang(); as lang) {
-          <div class="mt-3 flex items-center justify-center space-x-2 text-red-400 text-xs font-bold animate-pulse">
-            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+          <div class="mt-3 flex items-center justify-center space-x-2 text-red-400 text-xs font-bold animate-pulse" role="status" aria-live="polite">
+            <span class="w-2 h-2 rounded-full bg-red-500" aria-hidden="true"></span>
             <span>LIVE ON AIR ({{ lang.toUpperCase() }}) — {{ countdown() }}s</span>
           </div>
         }
 
         @if (audioError(); as err) {
-          <div class="mt-3 bg-amber-950/40 border border-amber-800/80 px-3 py-2 rounded-lg text-[10px] text-amber-300">
-            🔇 {{ err }}
+          <div class="mt-3 bg-amber-950/40 border border-amber-800/80 px-3 py-2 rounded-lg text-[10px] text-amber-300" role="alert">
+            <span aria-hidden="true">🔇</span> {{ err }}
           </div>
         }
       } @else {

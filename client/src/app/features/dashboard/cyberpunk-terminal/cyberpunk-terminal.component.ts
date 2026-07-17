@@ -20,8 +20,11 @@ import { SimulationStore } from '../../../state/simulation.store';
         
         <!-- Language Tabs / Raw Console Tab -->
         <div class="flex space-x-1">
-          <button 
+          <button
+            type="button"
             (click)="activeTab.set('raw')"
+            [attr.aria-pressed]="activeTab() === 'raw'"
+            aria-label="Show raw JSON console"
             [class.bg-emerald-500\/10]="activeTab() === 'raw'"
             [class.text-emerald-400]="activeTab() === 'raw'"
             [class.border-emerald-500\/30]="activeTab() === 'raw'"
@@ -32,11 +35,14 @@ import { SimulationStore } from '../../../state/simulation.store';
           >
             RAW_JSON
           </button>
-          
-          <button 
+
+          <button
+            type="button"
             *ngFor="let lang of ['en', 'es', 'fr']"
             (click)="activeTab.set(lang)"
             [disabled]="!hasResult()"
+            [attr.aria-pressed]="activeTab() === lang"
+            [attr.aria-label]="'Show ' + lang + ' broadcast script'"
             [class.bg-emerald-500\/10]="activeTab() === lang"
             [class.text-emerald-400]="activeTab() === lang"
             [class.border-emerald-500\/30]="activeTab() === lang"
@@ -58,7 +64,7 @@ import { SimulationStore } from '../../../state/simulation.store';
         <div class="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-900/5 to-transparent pointer-events-none"></div>
         
         <!-- Text area -->
-        <div class="relative z-10 whitespace-pre-wrap break-all leading-relaxed">
+        <div class="relative z-10 whitespace-pre-wrap break-all leading-relaxed" role="log" aria-live="polite" aria-atomic="false" aria-label="System terminal output">
           
           <!-- Case 1: Streaming in progress & raw tab is active -->
           <ng-container *ngIf="store.isStreaming() && activeTab() === 'raw'">

@@ -10,10 +10,11 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [CommonModule, FormsModule],
   template: `
     <button
+      type="button"
       (click)="isOpen.set(true)"
       class="px-4 py-2 border border-slate-700 hover:border-cyan-500 bg-slate-800/40 hover:bg-slate-800 rounded-lg text-xs font-semibold uppercase tracking-wider text-slate-300 transition-all cursor-pointer"
     >
-      🔑 Change Access Code
+      <span aria-hidden="true">🔑</span> Change Access Code
     </button>
 
     <!--
@@ -27,16 +28,17 @@ import { AuthService } from '../../../core/services/auth.service';
     <div #modalRoot>
       @if (isOpen()) {
         <div class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" (click)="close()">
-          <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl" (click)="$event.stopPropagation()">
-            <h2 class="text-lg font-bold text-white mb-1">Rotate Shared Access Code</h2>
+          <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="changeAccessCodeHeading" (click)="$event.stopPropagation()">
+            <h2 id="changeAccessCodeHeading" class="text-lg font-bold text-white mb-1">Rotate Shared Access Code</h2>
             <p class="text-xs text-slate-400 mb-5">
               You choose the new code — it's never shown or transmitted anywhere else, so relay it to the rest of the ops team yourself (radio, shift briefing, etc.). This will log everyone out, including you.
             </p>
 
             <form (ngSubmit)="onSubmit()" class="space-y-4">
               <div>
-                <label class="block text-xs font-medium text-slate-300 mb-1">Current Code</label>
+                <label for="currentCode" class="block text-xs font-medium text-slate-300 mb-1">Current Code</label>
                 <input
+                  id="currentCode"
                   type="password"
                   [(ngModel)]="currentCode"
                   name="currentCode"
@@ -46,8 +48,9 @@ import { AuthService } from '../../../core/services/auth.service';
                 />
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-300 mb-1">New Code (min. 6 characters)</label>
+                <label for="newCode" class="block text-xs font-medium text-slate-300 mb-1">New Code (min. 6 characters)</label>
                 <input
+                  id="newCode"
                   type="password"
                   [(ngModel)]="newCode"
                   name="newCode"
@@ -58,8 +61,9 @@ import { AuthService } from '../../../core/services/auth.service';
                 />
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-300 mb-1">Confirm New Code</label>
+                <label for="confirmCode" class="block text-xs font-medium text-slate-300 mb-1">Confirm New Code</label>
                 <input
+                  id="confirmCode"
                   type="password"
                   [(ngModel)]="confirmCode"
                   name="confirmCode"
@@ -70,13 +74,13 @@ import { AuthService } from '../../../core/services/auth.service';
               </div>
 
               @if (errorMessage()) {
-                <div class="bg-red-950/40 border border-red-800/80 px-3 py-2 rounded-lg text-xs text-red-300">
+                <div class="bg-red-950/40 border border-red-800/80 px-3 py-2 rounded-lg text-xs text-red-300" role="alert">
                   {{ errorMessage() }}
                 </div>
               }
 
               @if (successMessage()) {
-                <div class="bg-emerald-950/40 border border-emerald-800/80 px-3 py-2 rounded-lg text-xs text-emerald-300">
+                <div class="bg-emerald-950/40 border border-emerald-800/80 px-3 py-2 rounded-lg text-xs text-emerald-300" role="status">
                   {{ successMessage() }}
                 </div>
               }
@@ -86,6 +90,7 @@ import { AuthService } from '../../../core/services/auth.service';
                   type="button"
                   (click)="close()"
                   [disabled]="isLoading()"
+                  aria-label="Cancel and close dialog"
                   class="flex-1 py-2 border border-slate-700 hover:border-slate-500 rounded-lg text-xs font-semibold uppercase tracking-wider text-slate-300 cursor-pointer transition-all"
                 >
                   Cancel

@@ -22,8 +22,8 @@ interface AgencyDef {
           <p class="text-[10px] text-slate-400">Domain-specific guidance from StadiumPulse AI</p>
         </div>
         @if (store.severity(); as sev) {
-          <span class="px-2.5 py-0.5 rounded border text-[10px] font-semibold uppercase tracking-wider bg-red-500/10 text-red-400 border-red-500/30 animate-pulse">
-            {{ sev }}
+          <span role="status" class="px-2.5 py-0.5 rounded border text-[10px] font-semibold uppercase tracking-wider bg-red-500/10 text-red-400 border-red-500/30 animate-pulse">
+            Severity: {{ sev }}
           </span>
         }
       </div>
@@ -36,8 +36,8 @@ interface AgencyDef {
               [style.animation-delay.ms]="i * 300"
             >
               <div class="flex items-center space-x-2 mb-1.5">
-                <span class="w-2 h-2 rounded-full" [class]="agency.dot"></span>
-                <span class="text-xs uppercase font-bold tracking-wider text-slate-300">{{ agency.icon }} {{ agency.label }}</span>
+                <span class="w-2 h-2 rounded-full" aria-hidden="true" [class]="agency.dot"></span>
+                <span class="text-xs uppercase font-bold tracking-wider text-slate-300"><span aria-hidden="true">{{ agency.icon }}</span> {{ agency.label }}</span>
               </div>
               <p class="text-xs text-slate-400 leading-relaxed typewriter-text">
                 {{ result[agency.key] }}
@@ -49,12 +49,15 @@ interface AgencyDef {
         <!-- Multilingual card -->
         <div class="mt-3 bg-slate-950/40 border border-slate-800 p-3.5 rounded-lg">
           <div class="flex justify-between items-center mb-2">
-            <span class="text-xs uppercase font-bold tracking-wider text-slate-300">📢 Multilingual Broadcast Scripts</span>
+            <span class="text-xs uppercase font-bold tracking-wider text-slate-300"><span aria-hidden="true">📢</span> Multilingual Broadcast Scripts</span>
           </div>
-          <div class="flex space-x-1 mb-2">
+          <div class="flex space-x-1 mb-2" role="group" aria-label="Select broadcast language">
             @for (lang of langs; track lang) {
               <button
+                type="button"
                 (click)="activeLang.set(lang)"
+                [attr.aria-pressed]="activeLang() === lang"
+                [attr.aria-label]="'Show ' + lang + ' script'"
                 [class.bg-cyan-500\/10]="activeLang() === lang"
                 [class.text-cyan-400]="activeLang() === lang"
                 [class.border-cyan-500\/30]="activeLang() === lang"

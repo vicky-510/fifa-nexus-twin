@@ -17,11 +17,11 @@ interface AgencyNotification {
       <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Dispatch Status</h2>
       <p class="text-[10px] text-slate-500 mb-3">{{ notifiedCount() }}/{{ notifications().length }} agencies notified</p>
 
-      <div class="space-y-1.5">
+      <div class="space-y-1.5" role="status" aria-live="polite" aria-label="Agency dispatch notification status">
         @for (n of notifications(); track n.label) {
           <div class="flex items-center justify-between text-[10px] font-mono">
             <span [class.text-emerald-400]="n.notified" [class.text-slate-600]="!n.notified">
-              {{ n.notified ? '✅' : '⏳' }} {{ n.label }}
+              <span aria-hidden="true">{{ n.notified ? '✅' : '⏳' }}</span> {{ n.label }}
             </span>
             <span class="text-slate-600">{{ n.notified ? 'notified' : 'pending...' }}</span>
           </div>

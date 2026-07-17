@@ -9,13 +9,13 @@ import { SimulationStore } from '../../../state/simulation.store';
   template: `
     <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5 backdrop-blur shadow-lg">
       <h2 class="text-md font-bold uppercase tracking-wider text-cyan-400 mb-1 flex items-center space-x-2">
-        <span>🔮</span><span>Predictive Risk Intelligence</span>
+        <span aria-hidden="true">🔮</span><span>Predictive Risk Intelligence</span>
       </h2>
       <p class="text-[10px] text-slate-400 mb-4">Forward-looking forecast — next 60 minutes</p>
 
       @if (store.isPredicting()) {
-        <div class="text-center py-6 text-xs text-slate-500 flex flex-col items-center space-y-2">
-          <span class="animate-spin rounded-full h-5 w-5 border-2 border-cyan-500 border-t-transparent"></span>
+        <div class="text-center py-6 text-xs text-slate-500 flex flex-col items-center space-y-2" role="status" aria-live="polite">
+          <span class="animate-spin rounded-full h-5 w-5 border-2 border-cyan-500 border-t-transparent" aria-hidden="true"></span>
           <span>Forecasting operational risk...</span>
         </div>
       } @else if (store.predictiveForecast(); as forecast) {
@@ -23,10 +23,10 @@ import { SimulationStore } from '../../../state/simulation.store';
           @for (risk of forecast.risks; track risk.label) {
             <div>
               <div class="flex justify-between text-[11px] mb-1">
-                <span class="font-semibold text-slate-200">{{ levelIcon(risk.level) }} {{ risk.label }}</span>
+                <span class="font-semibold text-slate-200"><span aria-hidden="true">{{ levelIcon(risk.level) }}</span> {{ risk.label }} <span class="sr-only">— {{ risk.level }} risk</span></span>
                 <span class="text-slate-400">{{ risk.probability }}% · within {{ risk.windowMinutes }}m</span>
               </div>
-              <div class="h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+              <div class="h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800" role="progressbar" [attr.aria-valuenow]="risk.probability" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="risk.label + ' probability'">
                 <div
                   class="h-full rounded-full transition-all duration-700"
                   [class]="barColor(risk.level)"

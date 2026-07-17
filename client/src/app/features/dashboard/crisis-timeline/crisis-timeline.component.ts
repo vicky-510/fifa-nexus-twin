@@ -11,11 +11,11 @@ import { SimulationStore } from '../../../state/simulation.store';
       <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Crisis Timeline</h2>
 
       @if (store.crisisTimeline().length > 0) {
-        <div class="space-y-1.5 max-h-[220px] overflow-y-auto pr-1 mb-3">
+        <div class="space-y-1.5 max-h-[220px] overflow-y-auto pr-1 mb-3" role="log" aria-live="polite" aria-label="Crisis timeline events">
           @for (entry of store.crisisTimeline(); track entry.timestamp) {
             <div class="text-[10px] font-mono flex items-start space-x-2">
               <span class="text-slate-600 whitespace-nowrap">[{{ formatTime(entry.timestamp) }}]</span>
-              <span [class]="typeColor(entry.type)">{{ typeIcon(entry.type) }} {{ entry.message }}</span>
+              <span [class]="typeColor(entry.type)"><span aria-hidden="true">{{ typeIcon(entry.type) }}</span> {{ entry.type }}: {{ entry.message }}</span>
             </div>
           }
         </div>
@@ -24,7 +24,9 @@ import { SimulationStore } from '../../../state/simulation.store';
       }
 
       <div class="flex space-x-1.5">
+        <label for="crisisNote" class="sr-only">Add manual note</label>
         <input
+          id="crisisNote"
           [value]="noteText"
           (input)="noteText = $any($event.target).value"
           [disabled]="!store.activeSimulationId()"
@@ -32,8 +34,10 @@ import { SimulationStore } from '../../../state/simulation.store';
           class="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-[10px] text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500 disabled:opacity-50"
         />
         <button
+          type="button"
           (click)="submitNote()"
           [disabled]="!store.activeSimulationId() || !noteText.trim()"
+          aria-label="Add manual note to timeline"
           class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded text-[10px] font-semibold text-slate-300 cursor-pointer transition-all"
         >
           Add
