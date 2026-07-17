@@ -4,6 +4,18 @@ const logger = require('../utils/logger');
 
 const ACCESS_CODE_KEY = 'access_code';
 
+// Constant-time string comparison to prevent timing attacks on access-code and
+// signature checks. crypto.timingSafeEqual requires equal-length buffers, so a
+// length mismatch is rejected up front (this leaks length via timing, but not
+// content — an acceptable tradeoff, same as most timingSafeEqual usages).
+function timingSafeStringEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const bufA = Buffer.from(a, 'utf8');
+  const bufB = Buffer.from(b, 'utf8');
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
 // In-memory cache so a normal login/verify doesn't hit the DB on every request —
 // only the first read per process, and again right after a rotation. This is a
 // single-process ops-desk tool (no horizontal scaling), so a per-process cache
@@ -33,7 +45,7 @@ const AuthService = {
    */
   async verifyCode(code) {
     const currentCode = await this.getCurrentCode();
-    if (code !== currentCode) {
+    if (!timingSafeStringEqual(code, currentCode)) {
       return null;
     }
 
@@ -77,7 +89,7 @@ const AuthService = {
         .update(payloadStr)
         .digest('hex');
 
-      if (signature !== expectedSignature) {
+      if (!timingSafeStringEqual(signature, expectedSignature)) {
         return false;
       }
 
@@ -102,7 +114,7 @@ const AuthService = {
    */
   async changeCode(currentCodeAttempt, newCode) {
     const currentCode = await this.getCurrentCode();
-    if (currentCodeAttempt !== currentCode) {
+    if (!timingSafeStringEqual(currentCodeAttempt, currentCode)) {
       return false;
     }
     if (!newCode || newCode.length < 6) {
