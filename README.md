@@ -4,6 +4,7 @@
 
 A GenAI-powered crisis simulation and command dashboard for FIFA World Cup 2026 venue operations staff.
 
+**Live app:** https://fifa-nexus-twin.netlify.app
 **Live backend:** https://fifa-nexus-twin.onrender.com
 
 ## Chosen Vertical
@@ -33,16 +34,22 @@ This is "logical decision making based on user context" applied literally: the A
 - **Frontend (`client/`)** — standalone Angular components with Signal-based state stores (`simulation.store.ts`, `stadium.store.ts`):
   - Interactive SVG stadium schematic showing live routing/flood/gridlock overlays
   - A "cyberpunk terminal" console rendering the AI's streamed JSON response live
-  - Scenario control deck, agency response panels, PA broadcast/signage preview, QR dispatch for field staff, and a mobile staff-facing card view
-  - Accessibility toggle for high-contrast mode and adjustable text scale
+  - Scenario control deck, agency response panels, PA broadcast/signage preview, and a QR-dispatch overlay dialog for field staff
+  - A public, unauthenticated mobile "staff card" view (`/staff/:crisisId/:role`) — the QR code shown on the ops dashboard encodes a link to this page, so ground staff scan it with their own phone to get their role-specific directive, without needing the ops access code
+  - Accessibility toggle for high-contrast mode and adjustable text scale, plus app-wide ARIA labeling, live regions, focus-trapped dialogs, skip-to-content link, and `prefers-reduced-motion` support
 
-**Testing:** 23 backend tests (Jest + Supertest) and 245 frontend tests (Karma/Jasmine) covering auth, all API endpoints, guards, interceptors, state stores, and every UI component.
+**Testing:** 23 backend tests (Jest + Supertest) and 255 frontend tests (Karma/Jasmine) covering auth, all API endpoints, guards, interceptors, state stores, and every UI component (including dialog focus/keyboard behavior).
 
-**Deployment:** Backend on Render (connected to a Supabase Postgres instance), with a GitHub Actions workflow that redeploys automatically on every push to `main` that touches `server/`.
+**Security & efficiency hardening:** constant-time comparison for access-code/token checks (prevents timing attacks), `helmet` security headers, request body size limits, and DB indexes on the simulation history table's sort/filter columns with a capped result size.
+
+**Deployment:**
+- Backend on Render (connected to a Supabase Postgres instance), auto-deployed via a GitHub Actions workflow that pings Render's deploy hook on every push to `main` touching `server/`.
+- Frontend on Netlify, built from `client/` per `netlify.toml`, with an SPA rewrite for client-side routing.
+- A separate GitHub Actions workflow (`test.yml`) runs both test suites on every push/PR to `main` — see the badge above.
 
 ## Assumptions Made
 
-- Match schedule, stadium risk profiles, and tournament dates are illustrative/researched data for demo purposes, not official FIFA data feeds.
+- Match schedule, stadium risk profiles, and tournament dates are illustrative/researched data for demo purposes, not official FIFA data feeds, and are kept in sync with the current in-story date (as of this writing: Semifinal 2 completed with Argentina beating England 2-1, the 3rd Place Playoff between France and England is today's live match, and the Final is Spain vs Argentina on July 19).
 - A single shared access code (rather than per-user accounts/roles) is sufficient to represent "authenticated ops staff" for this demo — real deployment would need per-user identity and role-based access.
 - `MOCK_MODE` is available to demo the full UI/response flow without live Gemini API calls, for reviewers without an API key or to conserve quota.
 - The crisis scenarios and their agency response categories (navigation, security, accessibility, transport, sustainability) are modeled on publicly documented stadium emergency-operations practices, not a specific real FIFA Emergency Action Plan document.
