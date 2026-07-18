@@ -150,3 +150,17 @@ cd client
 npm install
 ng serve
 ```
+
+## Running Tests
+
+```bash
+# Backend — Jest + Supertest (31 tests)
+cd server
+npm test
+
+# Frontend — Karma + Jasmine, headless Chrome (261 tests)
+cd client
+npx ng test --watch=false --browsers=ChromeHeadless
+```
+
+Both suites also run automatically on every push/PR to `main` via the GitHub Actions workflow linked in the badge at the top of this file.
