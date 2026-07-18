@@ -14,7 +14,7 @@ A GenAI-powered crisis simulation and command dashboard for FIFA World Cup 2026 
 
 The core problem: when a crisis event begins at a stadium, an ops team needs an **instant, coordinated, multi-department response plan** — not a slow committee decision. StadiumPulse acts as that response assistant:
 
-1. **Context grounding** — every one of the 16 real World Cup stadiums has embedded static risk-profile data (altitude, seismic zone, extreme heat, hurricane exposure, transit chokepoints, etc.), and every crisis scenario is scoped to only the stadiums where it's realistically relevant (e.g. `stormInundation` won't trigger at a domed, inland stadium).
+1. **Context grounding** — every one of the 16 real World Cup stadiums has embedded static risk-profile data (altitude, seismic zone, extreme heat, hurricane exposure, transit chokepoints, etc.), and every crisis scenario is scoped to only the stadiums where it's realistically relevant (e.g. `stormInundation` won't trigger at a domed, inland stadium). Each match's live/completed/upcoming status — and the stadium's own live-indicator on the map — is derived by comparing its date to the real server clock, not a hand-maintained flag, so "today's match" is always correct without manual updates.
 2. **Dynamic decision generation** — when an operator triggers a scenario, the backend calls Google's Gemini model (`gemini-2.5-flash`) with the stadium's real risk profile and the scenario context, and asks it to return a structured response plan across simultaneous operational lanes: navigation/crowd routing, security and crowd control, accessibility guidance, transport updates, sustainability/energy actions, and multilingual public-address scripts (EN/ES/FR).
 3. **Escalation logic** — each scenario has a defined escalation path (e.g. `exitSurge → crowdCrush`) so operators can simulate a worsening situation and see how the AI-generated response changes as severity increases.
 4. **Live operational feed** — responses stream back over Server-Sent Events into a real-time "command terminal" UI, so the dashboard feels like an actual live ops console rather than a static form submission.
@@ -37,8 +37,9 @@ This is "logical decision making based on user context" applied literally: the A
   - A public, unauthenticated mobile "staff card" view (`/staff/:crisisId/:role`) — the QR code shown on the ops dashboard encodes a link to this page, so ground staff scan it with their own phone to get their role-specific directive, without needing the ops access code
   - Accessibility toggle for high-contrast mode and adjustable text scale, plus app-wide ARIA labeling, live regions, focus-trapped dialogs, skip-to-content link, and `prefers-reduced-motion` support
   - "Continue as Guest" on the login screen for a read-only session — reference data, match schedule, and simulation history are all viewable, but trigger/escalate/predict and changing the access code are disabled with an explanatory note, enforced server-side
+  - The live-match ticker keeps operators focused on the crisis-response workflow rather than duplicating a live scoreboard
 
-**Testing:** 31 backend tests (Jest + Supertest) and 261 frontend tests (Karma/Jasmine) covering auth (including the guest role), all API endpoints, guards, interceptors, state stores, and every UI component (including dialog focus/keyboard behavior).
+**Testing:** 38 backend tests (Jest + Supertest) and 260 frontend tests (Karma/Jasmine) covering auth (including the guest role), all API endpoints, date-derived match/stadium status, guards, interceptors, state stores, and every UI component (including dialog focus/keyboard behavior).
 
 **Security & efficiency hardening:** constant-time comparison for access-code/token checks (prevents timing attacks), `helmet` security headers, request body size limits, and DB indexes on the simulation history table's sort/filter columns with a capped result size.
 
@@ -49,7 +50,7 @@ This is "logical decision making based on user context" applied literally: the A
 
 ## Assumptions Made
 
-- Match schedule, stadium risk profiles, and tournament dates are illustrative/researched data for demo purposes, not official FIFA data feeds, and are kept in sync with the current in-story date (as of this writing: Semifinal 2 completed with Argentina beating England 2-1, the 3rd Place Playoff between France and England is today's live match, and the Final is Spain vs Argentina on July 19).
+- Match schedule, stadium risk profiles, and tournament dates are illustrative/researched data for demo purposes, not official FIFA data feeds. Each match's status (completed/live/upcoming) is computed from its date vs. the real server clock, so it stays accurate day to day without manual edits.
 - A single shared access code (rather than per-user accounts/roles) is sufficient to represent "authenticated ops staff" for this demo — real deployment would need per-user identity and role-based access.
 - `MOCK_MODE` is available to demo the full UI/response flow without live Gemini API calls, for reviewers without an API key or to conserve quota.
 - The crisis scenarios and their agency response categories (navigation, security, accessibility, transport, sustainability) are modeled on publicly documented stadium emergency-operations practices, not a specific real FIFA Emergency Action Plan document.
@@ -100,6 +101,10 @@ CORE BEHAVIOR
   (at least English, Spanish, French).
 - Support escalation: re-running a scenario at higher severity should produce a
   visibly different, more urgent response, and be linked to the prior record.
+- Derive each match's live/completed/upcoming status (and each stadium's own
+  live-indicator) from comparing its scheduled date to the real current date at
+  request time — never hardcode "today's match" as a static field, since that
+  requires a manual edit every single day to stay correct.
 - Stream the AI response back over Server-Sent Events into a live "command
   terminal" UI element, not just a static form result.
 - Add a public, unauthenticated mobile view (e.g. `/staff/:id/:role`) that ground
@@ -154,11 +159,11 @@ ng serve
 ## Running Tests
 
 ```bash
-# Backend — Jest + Supertest (31 tests)
+# Backend — Jest + Supertest (38 tests)
 cd server
 npm test
 
-# Frontend — Karma + Jasmine, headless Chrome (261 tests)
+# Frontend — Karma + Jasmine, headless Chrome (260 tests)
 cd client
 npx ng test --watch=false --browsers=ChromeHeadless
 ```
