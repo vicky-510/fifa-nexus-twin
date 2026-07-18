@@ -41,7 +41,7 @@ This is "logical decision making based on user context" applied literally: the A
   - "Continue as Guest" on the login screen for a read-only session — reference data, match schedule, and simulation history are all viewable, but every write action (triggering/escalating/predicting, changing the access code, PA broadcast, signage push, timeline notes) is disabled in the UI with an explanatory note and enforced server-side, so a guest never hits a silent rejection for an action they were shown but couldn't actually use
   - The live-match ticker keeps operators focused on the crisis-response workflow rather than duplicating a live scoreboard
 
-**Testing:** 38 backend tests (Jest + Supertest) and 277 frontend tests (Karma/Jasmine) covering auth (including the guest role), all API endpoints, date-derived match/stadium status, guards, interceptors, state stores, and every UI component (including dialog focus/keyboard behavior).
+**Testing:** 39 backend tests (Jest + Supertest) and 277 frontend tests (Karma/Jasmine) covering auth (including the guest role), all API endpoints, date-derived match/stadium status, guards, interceptors, state stores, and every UI component (including dialog focus/keyboard behavior).
 
 **Code quality:** ESLint enforced on both sides — `angular-eslint` (with template accessibility rules) on the client and `@eslint/js` on the server — with `strict` TypeScript, no `any` in production code, and lint gating in CI alongside the test suites.
 
@@ -163,7 +163,7 @@ ng serve
 ## Running Tests
 
 ```bash
-# Backend — Jest + Supertest (38 tests)
+# Backend — Jest + Supertest (39 tests)
 cd server
 npm test
 
