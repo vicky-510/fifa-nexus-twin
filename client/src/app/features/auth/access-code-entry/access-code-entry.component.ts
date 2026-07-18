@@ -5,6 +5,11 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { AccessibilityToggleComponent } from '../../../shared/components/accessibility-toggle/accessibility-toggle.component';
 
+// Render's free tier spins the backend down after inactivity; the first
+// request after a cold start can take up to ~30-50s to respond. Below this
+// threshold, showing the hint would just be noisy for a normal warm request.
+const COLD_START_HINT_DELAY_MS = 4000;
+
 @Component({
   selector: 'app-access-code-entry',
   standalone: true,
@@ -93,15 +98,27 @@ import { AccessibilityToggleComponent } from '../../../shared/components/accessi
 
         </form>
 
+        @if (showColdStartHint()) {
+          <p role="status" aria-live="polite" class="text-[11px] text-amber-400/90 text-center mt-3">
+            <span aria-hidden="true">⏳</span> First request may take up to a minute while the server wakes up from idle — hang tight.
+          </p>
+        }
+
         <div class="mt-6 pt-6 border-t border-slate-800 text-center">
           <button
             type="button"
             (click)="onGuestLogin()"
             [disabled]="isGuestLoading()"
             [attr.aria-busy]="isGuestLoading()"
-            class="text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 disabled:opacity-50 cursor-pointer transition-colors"
+            class="inline-flex items-center justify-center space-x-2 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 disabled:opacity-50 cursor-pointer transition-colors"
           >
-            {{ isGuestLoading() ? 'Entering as guest...' : 'Continue as Guest (read-only)' }}
+            @if (isGuestLoading()) {
+              <svg aria-hidden="true" class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            }
+            <span>{{ isGuestLoading() ? 'Entering as guest...' : 'Continue as Guest (read-only)' }}</span>
           </button>
         </div>
       </div>
@@ -122,19 +139,37 @@ export class AccessCodeEntryComponent {
   accessCode = '';
   isLoading = signal<boolean>(false);
   isGuestLoading = signal<boolean>(false);
+  showColdStartHint = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
+
+  private coldStartTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private startColdStartTimer(): void {
+    this.coldStartTimer = setTimeout(() => this.showColdStartHint.set(true), COLD_START_HINT_DELAY_MS);
+  }
+
+  private clearColdStartTimer(): void {
+    if (this.coldStartTimer) {
+      clearTimeout(this.coldStartTimer);
+      this.coldStartTimer = null;
+    }
+    this.showColdStartHint.set(false);
+  }
 
   onGuestLogin(): void {
     this.isGuestLoading.set(true);
     this.errorMessage.set(null);
+    this.startColdStartTimer();
 
     this.authService.guestLogin().subscribe({
       next: () => {
         this.isGuestLoading.set(false);
+        this.clearColdStartTimer();
         this.router.navigate(['/']);
       },
       error: () => {
         this.isGuestLoading.set(false);
+        this.clearColdStartTimer();
         this.errorMessage.set('Could not start a guest session. Please try again.');
       }
     });
@@ -149,14 +184,17 @@ export class AccessCodeEntryComponent {
 
     this.isLoading.set(true);
     this.errorMessage.set(null);
+    this.startColdStartTimer();
 
     this.authService.verifyCode(code).subscribe({
       next: () => {
         this.isLoading.set(false);
+        this.clearColdStartTimer();
         this.router.navigate(['/']);
       },
       error: () => {
         this.isLoading.set(false);
+        this.clearColdStartTimer();
         this.errorMessage.set('Verification failed. Invalid access credentials.');
       }
     });

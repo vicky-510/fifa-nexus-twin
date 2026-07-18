@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { AccessCodeEntryComponent } from './access-code-entry.component';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -126,6 +126,53 @@ describe('AccessCodeEntryComponent', () => {
       expect(component.isGuestLoading()).toBe(false);
       expect(component.errorMessage()).toBe('Could not start a guest session. Please try again.');
       expect(routerSpy.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('cold-start hint', () => {
+    beforeEach(() => jasmine.clock().install());
+    afterEach(() => jasmine.clock().uninstall());
+
+    it('should show a "server waking up" hint if login takes more than a few seconds', () => {
+      const pending = new Subject<{ token: string; role: 'ops_staff' }>();
+      authServiceSpy.verifyCode.and.returnValue(pending.asObservable());
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+
+      component.accessCode = 'FIFA2026OPS';
+      component.onSubmit();
+      expect(component.showColdStartHint()).toBe(false);
+
+      jasmine.clock().tick(4001);
+      expect(component.showColdStartHint()).toBe(true);
+
+      pending.next({ token: 'abc123', role: 'ops_staff' });
+      pending.complete();
+      expect(component.showColdStartHint()).toBe(false);
+    });
+
+    it('should not show the hint for a fast (warm) request', () => {
+      authServiceSpy.guestLogin.and.returnValue(of({ token: 'guest-token', role: 'guest' }));
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+
+      component.onGuestLogin();
+      jasmine.clock().tick(1000);
+
+      expect(component.showColdStartHint()).toBe(false);
+    });
+
+    it('should clear a pending hint timer if the request fails before it fires', () => {
+      const pending = new Subject<{ token: string; role: 'guest' }>();
+      authServiceSpy.guestLogin.and.returnValue(pending.asObservable());
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+
+      component.onGuestLogin();
+      pending.error(new Error('boom'));
+
+      jasmine.clock().tick(5000);
+      expect(component.showColdStartHint()).toBe(false);
     });
   });
 });
