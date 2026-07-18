@@ -133,14 +133,8 @@ function buildMockPredictiveResult(stadiumId) {
 function buildPrompt(stadium, match, scenario, severityOverride) {
   const severityInfo = getSeverityInfo(severityOverride || scenario.severityLevel);
   let scoreLine = '';
-  if (match) {
-    // Live matches carry their running score in liveScore/currentMinute —
-    // homeScore/awayScore stay null until the match is completed.
-    if (match.liveScore) {
-      scoreLine = ` | Score: ${match.liveScore.home}-${match.liveScore.away}${match.currentMinute != null ? ` (${match.currentMinute}')` : ''}`;
-    } else if (match.homeScore != null) {
-      scoreLine = ` | Score: ${match.homeScore}-${match.awayScore}`;
-    }
+  if (match && match.homeScore != null) {
+    scoreLine = ` | Score: ${match.homeScore}-${match.awayScore}`;
   }
   const matchLine = match
     ? `Match: ${match.homeFlagEmoji} ${match.homeTeam} vs ${match.awayFlagEmoji} ${match.awayTeam} | Stage: ${match.stage} | Status: ${match.status}${scoreLine}`

@@ -72,17 +72,16 @@ describe('LiveMatchTickerComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('MetLife Stadium');
   });
 
-  it('should show live score branch when match status is live', () => {
+  it('should show a live-now branch (no fabricated score/clock) when match status is live', () => {
     const fixture = TestBed.createComponent(LiveMatchTickerComponent);
-    const liveMatch: Match = { ...baseMatch, status: 'live', liveScore: { home: 2, away: 1 }, currentMinute: 63 };
+    const liveMatch: Match = { ...baseMatch, status: 'live' };
     fixture.componentInstance.stadium = stadium;
     fixture.componentInstance.match = liveMatch;
     fixture.detectChanges();
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('LIVE');
-    expect(text).toContain('2');
-    expect(text).toContain('1');
-    expect(text).toContain("63'");
+    expect(text).toContain('LIVE NOW');
+    expect(text).toContain('Brazil');
+    expect(text).toContain('France');
     expect(text).toContain('82,500');
   });
 
@@ -96,44 +95,22 @@ describe('LiveMatchTickerComponent', () => {
     expect(text).toContain('days away');
   });
 
-  describe('liveScoreHome / liveScoreAway', () => {
-    it('should prefer liveScore over homeScore/awayScore', () => {
-      const fixture = TestBed.createComponent(LiveMatchTickerComponent);
-      const comp = fixture.componentInstance;
-      const match: Match = { ...baseMatch, homeScore: 5, awayScore: 5, liveScore: { home: 1, away: 0 } };
-      expect(comp.liveScoreHome(match)).toBe(1);
-      expect(comp.liveScoreAway(match)).toBe(0);
-    });
-
-    it('should fall back to homeScore/awayScore when liveScore is absent', () => {
-      const fixture = TestBed.createComponent(LiveMatchTickerComponent);
-      const comp = fixture.componentInstance;
-      const match: Match = { ...baseMatch, homeScore: 3, awayScore: 2 };
-      expect(comp.liveScoreHome(match)).toBe(3);
-      expect(comp.liveScoreAway(match)).toBe(2);
-    });
-
-    it('should default to 0 when neither liveScore nor scores are set', () => {
-      const fixture = TestBed.createComponent(LiveMatchTickerComponent);
-      const comp = fixture.componentInstance;
-      const match: Match = { ...baseMatch, homeScore: null, awayScore: null };
-      expect(comp.liveScoreHome(match)).toBe(0);
-      expect(comp.liveScoreAway(match)).toBe(0);
-    });
-  });
-
   describe('daysAway', () => {
-    it('should compute a positive number of days for a future date', () => {
+    it('should compute a positive number of days for a date several days in the future', () => {
       const fixture = TestBed.createComponent(LiveMatchTickerComponent);
       const comp = fixture.componentInstance;
-      // Component's "now" is hardcoded to 2026-07-15
-      expect(comp.daysAway('2026-07-19')).toBe(4);
+      const future = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+      const futureStr = future.toISOString().slice(0, 10);
+      const result = comp.daysAway(futureStr);
+      // Allow for the same rounding slack a real day boundary can introduce.
+      expect(result).toBeGreaterThanOrEqual(4);
+      expect(result).toBeLessThanOrEqual(6);
     });
 
     it('should clamp to 0 for a past date', () => {
       const fixture = TestBed.createComponent(LiveMatchTickerComponent);
       const comp = fixture.componentInstance;
-      expect(comp.daysAway('2026-07-01')).toBe(0);
+      expect(comp.daysAway('2020-01-01')).toBe(0);
     });
   });
 });

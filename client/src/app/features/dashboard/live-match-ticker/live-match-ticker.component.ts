@@ -13,11 +13,7 @@ import { Stadium, Match } from '../../../core/services/reference.service';
         <span class="text-slate-600" aria-hidden="true">|</span>
 
         @if (match && match.status === 'live') {
-          <span class="text-red-400 font-bold animate-pulse"><span aria-hidden="true">🔴</span> LIVE: {{ match.homeFlagEmoji }} {{ match.homeTeam }} {{ liveScoreHome(match) }}–{{ liveScoreAway(match) }} {{ match.awayTeam }} {{ match.awayFlagEmoji }}</span>
-          @if (match.currentMinute != null) {
-            <span class="text-slate-600" aria-hidden="true">|</span>
-            <span class="text-red-300"><span aria-hidden="true">⏱</span> {{ match.currentMinute }}'</span>
-          }
+          <span class="text-red-400 font-bold animate-pulse"><span aria-hidden="true">🔴</span> LIVE NOW: {{ match.homeFlagEmoji }} {{ match.homeTeam }} vs {{ match.awayTeam }} {{ match.awayFlagEmoji }}</span>
           <span class="text-slate-600" aria-hidden="true">|</span>
           <span class="text-slate-300"><span aria-hidden="true">👥</span> {{ stadium.capacity.toLocaleString() }} capacity</span>
         } @else if (match) {
@@ -39,19 +35,9 @@ export class LiveMatchTickerComponent {
   @Input() stadium: Stadium | null = null;
   @Input() match: Match | null = null;
 
-  // Live matches store their running score in `liveScore` (homeScore/awayScore
-  // stay null until the match is completed), so fall back to that when live.
-  liveScoreHome(match: Match): number {
-    return match.liveScore?.home ?? match.homeScore ?? 0;
-  }
-
-  liveScoreAway(match: Match): number {
-    return match.liveScore?.away ?? match.awayScore ?? 0;
-  }
-
   daysAway(dateStr: string): number {
     const target = new Date(dateStr).getTime();
-    const now = new Date('2026-07-15').getTime();
+    const now = Date.now();
     return Math.max(0, Math.ceil((target - now) / (1000 * 60 * 60 * 24)));
   }
 }

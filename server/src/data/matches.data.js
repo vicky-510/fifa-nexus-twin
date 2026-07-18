@@ -379,8 +379,6 @@ const MATCHES = [
     awayScore: null,
     stadiumId: 'hard_rock',
     status: 'live',
-    currentMinute: 41,
-    liveScore: { home: 1, away: 1 },
     attendance: 64100,
     note: '🔴 LIVE NOW — 3rd Place Playoff: France vs England at Hard Rock Stadium, Miami'
   },

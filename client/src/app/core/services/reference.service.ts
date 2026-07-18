@@ -43,10 +43,6 @@ export interface Match {
   status: 'completed' | 'live' | 'upcoming' | 'upcoming-final';
   attendance: number | null;
   note: string;
-  // Only present while status === 'live' — the running score/clock, kept separate
-  // from homeScore/awayScore (which stay null until the match is completed).
-  liveScore?: { home: number; away: number };
-  currentMinute?: number;
 }
 
 export interface CrisisScenario {
