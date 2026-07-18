@@ -364,21 +364,50 @@ const STADIUMS = [
   }
 ];
 
+// Lazy require to avoid a load-order issue — both data files are leaf modules
+// with no other dependencies, so there's no real circularity, just deferring
+// the require until first use keeps this file's own load order independent.
+function getActiveMatchForStadium(stadiumId) {
+  const { getActiveMatch } = require('./matches.data');
+  return getActiveMatch(stadiumId);
+}
+
+const STATUS_DISPLAY = {
+  live: { status: 'live', color: '#ef4444' }, // RED — LIVE NOW
+  'upcoming-final': { status: 'upcoming-final', color: '#f59e0b' }, // gold — THE FINAL
+  upcoming: { status: 'upcoming', color: '#f59e0b' },
+  complete: { status: 'complete', color: '#10b981' }
+};
+
 /**
- * Get a stadium by ID
+ * Overlays a stadium's status/color, derived from whichever match is
+ * currently active there (live/upcoming/upcoming-final), or 'complete' if
+ * every match at this venue is in the past — rather than trusting a static
+ * field that would otherwise need manual updates every day of the tournament.
+ */
+function withDerivedStatus(stadium) {
+  const activeMatch = getActiveMatchForStadium(stadium.id);
+  const key = activeMatch ? activeMatch.status : 'complete';
+  const display = STATUS_DISPLAY[key] || STATUS_DISPLAY.complete;
+  return { ...stadium, ...display };
+}
+
+/**
+ * Get a stadium by ID, with status/color freshly derived
  * @param {string} id
  * @returns {object|null}
  */
 function getStadiumById(id) {
-  return STADIUMS.find(s => s.id === id) || null;
+  const stadium = STADIUMS.find(s => s.id === id);
+  return stadium ? withDerivedStatus(stadium) : null;
 }
 
 /**
- * Get all stadiums
+ * Get all stadiums, with status/color freshly derived
  * @returns {Array}
  */
 function getAllStadiums() {
-  return STADIUMS;
+  return STADIUMS.map(withDerivedStatus);
 }
 
 /**
@@ -387,7 +416,7 @@ function getAllStadiums() {
  * @returns {Array}
  */
 function getStadiumsByCountry(countryCode) {
-  return STADIUMS.filter(s => s.countryCode === countryCode);
+  return STADIUMS.filter(s => s.countryCode === countryCode).map(withDerivedStatus);
 }
 
 module.exports = { STADIUMS, getStadiumById, getAllStadiums, getStadiumsByCountry };

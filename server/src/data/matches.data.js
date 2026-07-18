@@ -406,18 +406,50 @@ const MATCHES = [
 ];
 
 /**
- * Get all matches
+ * Today's date as 'YYYY-MM-DD' (UTC), so status can be derived from the real
+ * clock instead of a hand-maintained field that goes stale every day.
  */
-function getAllMatches() {
-  return MATCHES;
+function getTodayDateString() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 /**
- * Get matches for a specific stadium
+ * Derives a match's live/completed/upcoming status from its date vs. today,
+ * rather than trusting a static field that would otherwise need manual
+ * updates every single day the tournament runs.
+ * @param {object} match
+ * @param {string} [todayStr] - injectable for testing; defaults to the real today
+ */
+function deriveStatus(match, todayStr = getTodayDateString()) {
+  if (match.date < todayStr) return 'completed';
+  if (match.date > todayStr) return match.stage === 'Final' ? 'upcoming-final' : 'upcoming';
+  // date === todayStr: the match is happening today, regardless of stage —
+  // once it's underway there's no more "upcoming" flavor to preserve.
+  return 'live';
+}
+
+/**
+ * Returns a shallow copy of a match with its status overlaid by deriveStatus.
+ */
+function withDerivedStatus(match, todayStr = getTodayDateString()) {
+  return { ...match, status: deriveStatus(match, todayStr) };
+}
+
+/**
+ * Get all matches, with status freshly derived from today's date
+ */
+function getAllMatches() {
+  const today = getTodayDateString();
+  return MATCHES.map(m => withDerivedStatus(m, today));
+}
+
+/**
+ * Get matches for a specific stadium, with status freshly derived
  * @param {string} stadiumId
  */
 function getMatchesByStadium(stadiumId) {
-  return MATCHES.filter(m => m.stadiumId === stadiumId);
+  const today = getTodayDateString();
+  return MATCHES.filter(m => m.stadiumId === stadiumId).map(m => withDerivedStatus(m, today));
 }
 
 /**
@@ -438,14 +470,14 @@ function getActiveMatch(stadiumId) {
  * Get the live match (only one at a time in our mock)
  */
 function getLiveMatch() {
-  return MATCHES.find(m => m.status === 'live') || null;
+  return getAllMatches().find(m => m.status === 'live') || null;
 }
 
 /**
  * Get upcoming matches (sorted by date)
  */
 function getUpcomingMatches() {
-  return MATCHES
+  return getAllMatches()
     .filter(m => m.status === 'upcoming' || m.status === 'upcoming-final')
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 }
@@ -456,5 +488,7 @@ module.exports = {
   getMatchesByStadium,
   getActiveMatch,
   getLiveMatch,
-  getUpcomingMatches
+  getUpcomingMatches,
+  deriveStatus,
+  getTodayDateString
 };
