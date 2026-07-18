@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { SignagePreviewComponent } from './signage-preview.component';
 import { SimulationStore } from '../../../state/simulation.store';
+import { AuthService } from '../../../core/services/auth.service';
 
 describe('SignagePreviewComponent', () => {
   let storeStub: {
@@ -9,6 +10,7 @@ describe('SignagePreviewComponent', () => {
     severity: ReturnType<typeof signal<string | null>>;
     addManualNote: jasmine.Spy;
   };
+  let authServiceStub: { isGuest: ReturnType<typeof signal<boolean>> };
 
   beforeEach(async () => {
     storeStub = {
@@ -16,10 +18,14 @@ describe('SignagePreviewComponent', () => {
       severity: signal<string | null>(null),
       addManualNote: jasmine.createSpy('addManualNote')
     };
+    authServiceStub = { isGuest: signal(false) };
 
     await TestBed.configureTestingModule({
       imports: [SignagePreviewComponent],
-      providers: [{ provide: SimulationStore, useValue: storeStub }]
+      providers: [
+        { provide: SimulationStore, useValue: storeStub },
+        { provide: AuthService, useValue: authServiceStub }
+      ]
     }).compileComponents();
   });
 
@@ -87,6 +93,30 @@ describe('SignagePreviewComponent', () => {
 
       expect(storeStub.addManualNote).toHaveBeenCalled();
       expect(fixture.componentInstance.pushed()).toBe(true);
+    });
+  });
+
+  describe('guest (read-only) restrictions', () => {
+    it('should disable the push-to-signage button for a guest session and show an explanatory note', () => {
+      authServiceStub.isGuest.set(true);
+      storeStub.latestResult.set({ navigation: 'Evacuate via Gate C immediately' });
+      const fixture = TestBed.createComponent(SignagePreviewComponent);
+      fixture.detectChanges();
+
+      const button: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+      expect(button.disabled).toBe(true);
+      expect(fixture.nativeElement.textContent).toContain('Read-only guest session');
+    });
+
+    it('should leave the push-to-signage button enabled for a full-access session', () => {
+      authServiceStub.isGuest.set(false);
+      storeStub.latestResult.set({ navigation: 'Evacuate via Gate C immediately' });
+      const fixture = TestBed.createComponent(SignagePreviewComponent);
+      fixture.detectChanges();
+
+      const button: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+      expect(button.disabled).toBe(false);
+      expect(fixture.nativeElement.textContent).not.toContain('Read-only guest session');
     });
   });
 });

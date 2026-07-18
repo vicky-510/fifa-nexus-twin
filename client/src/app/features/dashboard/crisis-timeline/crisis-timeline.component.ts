@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SimulationStore } from '../../../state/simulation.store';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-crisis-timeline',
@@ -23,20 +24,26 @@ import { SimulationStore } from '../../../state/simulation.store';
         <p class="text-[10px] text-slate-600 italic mb-3">No active crisis timeline. Trigger a scenario to begin logging.</p>
       }
 
+      @if (authService.isGuest()) {
+        <p role="note" class="text-[10px] text-slate-500 italic mb-1.5">
+          <span aria-hidden="true">🔒</span> Read-only guest session — adding notes is reserved for authenticated ops staff.
+        </p>
+      }
+
       <div class="flex space-x-1.5">
         <label for="crisisNote" class="sr-only">Add manual note</label>
         <input
           id="crisisNote"
           [value]="noteText"
           (input)="noteText = $any($event.target).value"
-          [disabled]="!store.activeSimulationId()"
+          [disabled]="authService.isGuest() || !store.activeSimulationId()"
           placeholder="Add manual note..."
           class="flex-1 bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-[10px] text-slate-200 placeholder-slate-600 focus:outline-none focus:border-amber-500 disabled:opacity-50"
         />
         <button
           type="button"
           (click)="submitNote()"
-          [disabled]="!store.activeSimulationId() || !noteText.trim()"
+          [disabled]="authService.isGuest() || !store.activeSimulationId() || !noteText.trim()"
           aria-label="Add manual note to timeline"
           class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded text-[10px] font-semibold text-slate-300 cursor-pointer transition-all"
         >
@@ -48,6 +55,7 @@ import { SimulationStore } from '../../../state/simulation.store';
 })
 export class CrisisTimelineComponent {
   store = inject(SimulationStore);
+  authService = inject(AuthService);
   noteText = '';
 
   submitNote(): void {

@@ -2,16 +2,19 @@ import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { CrisisTimelineComponent } from './crisis-timeline.component';
 import { SimulationStore } from '../../../state/simulation.store';
+import { AuthService } from '../../../core/services/auth.service';
 
 describe('CrisisTimelineComponent', () => {
   let crisisTimeline: ReturnType<typeof signal<any[]>>;
   let activeSimulationId: ReturnType<typeof signal<number | null>>;
   let addManualNoteSpy: jasmine.Spy;
+  let authServiceStub: { isGuest: ReturnType<typeof signal<boolean>> };
 
   beforeEach(async () => {
     crisisTimeline = signal<any[]>([]);
     activeSimulationId = signal<number | null>(null);
     addManualNoteSpy = jasmine.createSpy('addManualNote');
+    authServiceStub = { isGuest: signal(false) };
 
     const storeStub = {
       crisisTimeline,
@@ -21,7 +24,10 @@ describe('CrisisTimelineComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [CrisisTimelineComponent],
-      providers: [{ provide: SimulationStore, useValue: storeStub }]
+      providers: [
+        { provide: SimulationStore, useValue: storeStub },
+        { provide: AuthService, useValue: authServiceStub }
+      ]
     }).compileComponents();
   });
 
@@ -118,5 +124,29 @@ describe('CrisisTimelineComponent', () => {
     expect(comp.typeColor('escalated')).toBe('text-red-500 font-bold');
     expect(comp.typeColor('note')).toBe('text-slate-300');
     expect(comp.typeColor('unknown-type')).toBe('text-slate-400');
+  });
+
+  describe('guest (read-only) restrictions', () => {
+    it('should disable the note input/button for a guest session even with an active simulation, and show an explanatory note', () => {
+      authServiceStub.isGuest.set(true);
+      activeSimulationId.set(42);
+      const fixture = create();
+
+      const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
+      const button: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+      expect(input.disabled).toBe(true);
+      expect(button.disabled).toBe(true);
+      expect(fixture.nativeElement.textContent).toContain('Read-only guest session');
+    });
+
+    it('should leave the note input/button enabled for a full-access session with an active simulation', () => {
+      authServiceStub.isGuest.set(false);
+      activeSimulationId.set(42);
+      const fixture = create();
+
+      const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
+      expect(input.disabled).toBe(false);
+      expect(fixture.nativeElement.textContent).not.toContain('Read-only guest session');
+    });
   });
 });

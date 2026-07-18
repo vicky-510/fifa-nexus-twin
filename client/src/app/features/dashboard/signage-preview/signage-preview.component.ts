@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SimulationStore } from '../../../state/simulation.store';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-signage-preview',
@@ -17,11 +18,18 @@ import { SimulationStore } from '../../../state/simulation.store';
           <div class="text-slate-400 text-[10px] uppercase tracking-wider mt-3"><span aria-hidden="true">🚨</span> Operational Notice <span aria-hidden="true">🚨</span></div>
         </div>
 
+        @if (authService.isGuest()) {
+          <p role="note" class="text-[10px] text-slate-500 italic text-center mb-2">
+            <span aria-hidden="true">🔒</span> Read-only guest session — pushing to signage is reserved for authenticated ops staff.
+          </p>
+        }
+
         <button
           type="button"
           (click)="pushToSignage()"
+          [disabled]="authService.isGuest()"
           [attr.aria-pressed]="pushed()"
-          class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2 rounded-lg text-xs uppercase tracking-wider cursor-pointer transition-all"
+          class="w-full bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 font-semibold py-2 rounded-lg text-xs uppercase tracking-wider cursor-pointer transition-all"
         >
           <span aria-hidden="true">{{ pushed() ? '✅' : '' }}</span> {{ pushed() ? 'Pushed to Signage Network' : 'Push to Signage Network' }}
         </button>
@@ -35,6 +43,7 @@ import { SimulationStore } from '../../../state/simulation.store';
 })
 export class SignagePreviewComponent {
   store = inject(SimulationStore);
+  authService = inject(AuthService);
   pushed = signal<boolean>(false);
 
   pushToSignage(): void {
