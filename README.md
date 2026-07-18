@@ -25,6 +25,8 @@ This is "logical decision making based on user context" applied literally: the A
 
 **Architecture:** Angular 21 (frontend) + Node/Express (backend) + PostgreSQL (Supabase-hosted), talking to Google's Gemini API.
 
+![Architecture diagram](docs/architecture-diagram.png)
+
 - **Backend (`server/`)** — Express REST API with route/controller/service layering:
   - `auth` — a lightweight, dependency-free access-code gate using Node's built-in `crypto` for signed session tokens (no external JWT library). Two session tiers: a full-access `ops_staff` token (requires the access code) and a read-only `guest` token (no code required) — a `requireFullAccess` middleware blocks guests from write routes (triggering, escalating, changing the access code) while reference/history reads stay open to both
   - `reference` — serves the 16 stadiums, match schedule, and crisis scenario catalog
