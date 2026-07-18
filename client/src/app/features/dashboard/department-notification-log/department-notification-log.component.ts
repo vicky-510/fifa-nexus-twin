@@ -1,6 +1,7 @@
 import { Component, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SimulationStore } from '../../../state/simulation.store';
+import { AuthService } from '../../../core/services/auth.service';
 
 interface AgencyNotification {
   label: string;
@@ -32,6 +33,7 @@ interface AgencyNotification {
 })
 export class DepartmentNotificationLogComponent {
   store = inject(SimulationStore);
+  private authService = inject(AuthService);
 
   notifications = signal<AgencyNotification[]>([
     { label: 'Gate Operations Team Lead', notified: false, delayMs: 300 },
@@ -68,7 +70,12 @@ export class DepartmentNotificationLogComponent {
           list.map((item, idx) => idx === i ? { ...item, notified: true } : item)
         );
         this.notifiedCount.update(c => c + 1);
-        if (this.notifiedCount() === reset.length) {
+        // Guests can passively trigger this simulated dispatch just by viewing a
+        // historical record (no click involved), so — unlike the other manual-note
+        // actions elsewhere, which are disabled at the UI — this one is silently
+        // skipped for guests rather than surfacing an error for something they
+        // never asked to do.
+        if (this.notifiedCount() === reset.length && !this.authService.isGuest()) {
           this.store.addManualNote(`All ${reset.length} agencies notified`);
         }
       }, n.delayMs + i * 100);

@@ -2,21 +2,27 @@ import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { DepartmentNotificationLogComponent } from './department-notification-log.component';
 import { SimulationStore } from '../../../state/simulation.store';
+import { AuthService } from '../../../core/services/auth.service';
 
 describe('DepartmentNotificationLogComponent', () => {
   let activeScenario: ReturnType<typeof signal<string | null>>;
   let addManualNoteSpy: jasmine.Spy;
+  let authServiceStub: { isGuest: ReturnType<typeof signal<boolean>> };
 
   beforeEach(async () => {
     jasmine.clock().install();
     activeScenario = signal<string | null>(null);
     addManualNoteSpy = jasmine.createSpy('addManualNote');
+    authServiceStub = { isGuest: signal(false) };
 
     const storeStub = { activeScenario, addManualNote: addManualNoteSpy };
 
     await TestBed.configureTestingModule({
       imports: [DepartmentNotificationLogComponent],
-      providers: [{ provide: SimulationStore, useValue: storeStub }]
+      providers: [
+        { provide: SimulationStore, useValue: storeStub },
+        { provide: AuthService, useValue: authServiceStub }
+      ]
     }).compileComponents();
   });
 
@@ -74,6 +80,21 @@ describe('DepartmentNotificationLogComponent', () => {
 
     expect(addManualNoteSpy).toHaveBeenCalledWith('All 8 agencies notified');
     expect(addManualNoteSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should still animate the notification log but skip addManualNote for a guest session', () => {
+    authServiceStub.isGuest.set(true);
+    const fixture = create();
+    activeScenario.set('fire');
+    fixture.detectChanges();
+
+    jasmine.clock().tick(2000);
+
+    // A guest can trigger this just by viewing a historical record (no click
+    // involved), so it must silently skip the write rather than surfacing an
+    // error for something they never asked to do.
+    expect(fixture.componentInstance.notifiedCount()).toBe(8);
+    expect(addManualNoteSpy).not.toHaveBeenCalled();
   });
 
   it('should not re-dispatch when the scenario signal is set to the same value again', () => {
