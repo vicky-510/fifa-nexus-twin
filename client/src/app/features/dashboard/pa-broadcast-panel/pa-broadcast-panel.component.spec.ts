@@ -2,9 +2,11 @@ import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { PaBroadcastPanelComponent } from './pa-broadcast-panel.component';
 import { SimulationStore } from '../../../state/simulation.store';
+import { AuthService } from '../../../core/services/auth.service';
 
 describe('PaBroadcastPanelComponent', () => {
   let storeStub: { latestResult: ReturnType<typeof signal<any>>; addManualNote: jasmine.Spy };
+  let authServiceStub: { isGuest: ReturnType<typeof signal<boolean>> };
   let speechSynthesisSpy: jasmine.Spy;
   const scripts = { en: 'Please evacuate calmly.', es: 'Por favor evacuen con calma.', fr: 'Veuillez evacuer calmement.' };
 
@@ -13,10 +15,14 @@ describe('PaBroadcastPanelComponent', () => {
       latestResult: signal<any>(null),
       addManualNote: jasmine.createSpy('addManualNote')
     };
+    authServiceStub = { isGuest: signal(false) };
 
     await TestBed.configureTestingModule({
       imports: [PaBroadcastPanelComponent],
-      providers: [{ provide: SimulationStore, useValue: storeStub }]
+      providers: [
+        { provide: SimulationStore, useValue: storeStub },
+        { provide: AuthService, useValue: authServiceStub }
+      ]
     }).compileComponents();
 
     // Stub Web Audio / Speech Synthesis so tests don't produce real sound/errors
@@ -131,6 +137,34 @@ describe('PaBroadcastPanelComponent', () => {
       expect(comp.langFlag('en')).toBe('🇬🇧');
       expect(comp.langFlag('es')).toBe('🇪🇸');
       expect(comp.langFlag('fr')).toBe('🇫🇷');
+    });
+  });
+
+  describe('guest (read-only) restrictions', () => {
+    it('should disable all broadcast buttons for a guest session and show an explanatory note', () => {
+      authServiceStub.isGuest.set(true);
+      storeStub.latestResult.set({ multilingualScripts: scripts });
+      const fixture = TestBed.createComponent(PaBroadcastPanelComponent);
+      fixture.detectChanges();
+
+      const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
+      const broadcastButtons = buttons.filter(b => b.textContent?.includes('Broadcast'));
+      expect(broadcastButtons.length).toBeGreaterThan(0);
+      broadcastButtons.forEach(btn => expect(btn.disabled).toBe(true));
+      expect(fixture.nativeElement.textContent).toContain('Read-only guest session');
+    });
+
+    it('should leave broadcast buttons enabled for a full-access session', () => {
+      authServiceStub.isGuest.set(false);
+      storeStub.latestResult.set({ multilingualScripts: scripts });
+      const fixture = TestBed.createComponent(PaBroadcastPanelComponent);
+      fixture.detectChanges();
+
+      const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
+      const broadcastButtons = buttons.filter(b => b.textContent?.includes('Broadcast'));
+      expect(broadcastButtons.length).toBeGreaterThan(0);
+      broadcastButtons.forEach(btn => expect(btn.disabled).toBe(false));
+      expect(fixture.nativeElement.textContent).not.toContain('Read-only guest session');
     });
   });
 });

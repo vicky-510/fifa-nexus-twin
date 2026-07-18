@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SimulationStore } from '../../../state/simulation.store';
+import { AuthService } from '../../../core/services/auth.service';
 
 type Lang = 'en' | 'es' | 'fr';
 
@@ -16,6 +17,12 @@ type Lang = 'en' | 'es' | 'fr';
       <p class="text-[10px] text-slate-400 mb-4">Simulated public announcement dispatch</p>
 
       @if (store.latestResult(); as result) {
+        @if (authService.isGuest()) {
+          <p role="note" class="text-[10px] text-slate-500 italic text-center pb-3">
+            <span aria-hidden="true">🔒</span> Read-only guest session — broadcasting is reserved for authenticated ops staff.
+          </p>
+        }
+
         <div class="space-y-2.5 mb-4">
           @for (lang of langs; track lang) {
             <div class="bg-slate-950/40 border border-slate-800 rounded-lg p-3 flex items-center justify-between gap-3">
@@ -26,7 +33,7 @@ type Lang = 'en' | 'es' | 'fr';
               <button
                 type="button"
                 (click)="broadcast(lang, result.multilingualScripts[lang])"
-                [disabled]="liveLang() === lang"
+                [disabled]="authService.isGuest() || liveLang() === lang"
                 [attr.aria-label]="'Broadcast ' + lang + ' announcement'"
                 class="shrink-0 px-3 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 disabled:opacity-50 border border-cyan-500/30 text-cyan-400 rounded text-[10px] font-bold uppercase cursor-pointer transition-all"
               >
@@ -39,7 +46,7 @@ type Lang = 'en' | 'es' | 'fr';
         <button
           type="button"
           (click)="broadcastAll(result.multilingualScripts)"
-          [disabled]="!!liveLang()"
+          [disabled]="authService.isGuest() || !!liveLang()"
           class="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider cursor-pointer transition-all"
         >
           <span aria-hidden="true">🔊</span> Broadcast All Languages Simultaneously
@@ -67,6 +74,7 @@ type Lang = 'en' | 'es' | 'fr';
 })
 export class PaBroadcastPanelComponent {
   store = inject(SimulationStore);
+  authService = inject(AuthService);
   langs: Lang[] = ['en', 'es', 'fr'];
 
   liveLang = signal<string | null>(null);
