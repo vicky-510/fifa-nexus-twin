@@ -57,7 +57,7 @@ This is "logical decision making based on user context" applied literally: the A
 
 ## The Prompt
 
-This project was built with an AI coding assistant. This is the prompt for building it:
+This project was built using Antigravity with Gemini Flash and Claude Sonnet (free tier). This is the prompt for building it:
 
 ```
 Build "StadiumPulse" — a GenAI-powered crisis simulation and command dashboard for
