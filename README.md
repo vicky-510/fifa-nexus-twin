@@ -38,10 +38,10 @@ This is "logical decision making based on user context" applied literally: the A
   - Scenario control deck, agency response panels, PA broadcast/signage preview, and a QR-dispatch overlay dialog for field staff
   - A public, unauthenticated mobile "staff card" view (`/staff/:crisisId/:role`) — the QR code shown on the ops dashboard encodes a link to this page, so ground staff scan it with their own phone to get their role-specific directive, without needing the ops access code
   - Accessibility toggle for high-contrast mode and adjustable text scale, plus app-wide ARIA labeling, live regions, focus-trapped dialogs, skip-to-content link, and `prefers-reduced-motion` support
-  - "Continue as Guest" on the login screen for a read-only session — reference data, match schedule, and simulation history are all viewable, but trigger/escalate/predict and changing the access code are disabled with an explanatory note, enforced server-side
+  - "Continue as Guest" on the login screen for a read-only session — reference data, match schedule, and simulation history are all viewable, but every write action (triggering/escalating/predicting, changing the access code, PA broadcast, signage push, timeline notes) is disabled in the UI with an explanatory note and enforced server-side, so a guest never hits a silent rejection for an action they were shown but couldn't actually use
   - The live-match ticker keeps operators focused on the crisis-response workflow rather than duplicating a live scoreboard
 
-**Testing:** 38 backend tests (Jest + Supertest) and 260 frontend tests (Karma/Jasmine) covering auth (including the guest role), all API endpoints, date-derived match/stadium status, guards, interceptors, state stores, and every UI component (including dialog focus/keyboard behavior).
+**Testing:** 38 backend tests (Jest + Supertest) and 270 frontend tests (Karma/Jasmine) covering auth (including the guest role), all API endpoints, date-derived match/stadium status, guards, interceptors, state stores, and every UI component (including dialog focus/keyboard behavior).
 
 **Security & efficiency hardening:** constant-time comparison for access-code/token checks (prevents timing attacks), `helmet` security headers, request body size limits, and DB indexes on the simulation history table's sort/filter columns with a capped result size.
 
@@ -165,7 +165,7 @@ ng serve
 cd server
 npm test
 
-# Frontend — Karma + Jasmine, headless Chrome (260 tests)
+# Frontend — Karma + Jasmine, headless Chrome (270 tests)
 cd client
 npx ng test --watch=false --browsers=ChromeHeadless
 ```
