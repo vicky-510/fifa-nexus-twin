@@ -43,6 +43,7 @@ describe('StadiumSelectorComponent', () => {
       loadReferenceData: jasmine.createSpy('loadReferenceData')
     };
     authServiceSpy = jasmine.createSpyObj('AuthService', ['logout']);
+    (authServiceSpy as any).isGuest = signal(false);
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
@@ -90,6 +91,20 @@ describe('StadiumSelectorComponent', () => {
     fixture.componentInstance.onLogout();
     expect(authServiceSpy.logout).toHaveBeenCalled();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/access-code']);
+  });
+
+  describe('guest (read-only) restrictions', () => {
+    it('should show the change-access-code control for a full-access session', () => {
+      (authServiceSpy as any).isGuest.set(false);
+      const fixture = createComponent();
+      expect(fixture.nativeElement.querySelector('app-change-access-code')).toBeTruthy();
+    });
+
+    it('should hide the change-access-code control for a guest session', () => {
+      (authServiceSpy as any).isGuest.set(true);
+      const fixture = createComponent();
+      expect(fixture.nativeElement.querySelector('app-change-access-code')).toBeNull();
+    });
   });
 
   it('should render a map marker button per stadium and update hoveredStadium on hover', () => {

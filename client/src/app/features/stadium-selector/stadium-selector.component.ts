@@ -30,7 +30,9 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
           >
             <span aria-hidden="true">🌐</span> Global Overview
           </button>
-          <app-change-access-code></app-change-access-code>
+          @if (!authService.isGuest()) {
+            <app-change-access-code></app-change-access-code>
+          }
           <app-accessibility-toggle></app-accessibility-toggle>
           <button
             type="button"
@@ -142,7 +144,7 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
 })
 export class StadiumSelectorComponent implements OnInit {
   store = inject(StadiumStore);
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private router = inject(Router);
 
   hoveredStadium = signal<Stadium | null>(null);
