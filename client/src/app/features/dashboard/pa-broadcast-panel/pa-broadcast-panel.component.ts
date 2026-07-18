@@ -1,17 +1,24 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { SimulationStore } from '../../../state/simulation.store';
 import { AuthService } from '../../../core/services/auth.service';
 
 type Lang = 'en' | 'es' | 'fr';
 
+/** Narrow an unknown thrown value to a human-readable message. */
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 @Component({
   selector: 'app-pa-broadcast-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5 backdrop-blur shadow-lg">
-      <h2 class="text-md font-bold uppercase tracking-wider text-slate-100 mb-1 flex items-center space-x-2">
+      <h2
+        class="text-md font-bold uppercase tracking-wider text-slate-100 mb-1 flex items-center space-x-2"
+      >
         <span aria-hidden="true">📢</span><span>Stadium PA System — Broadcast Ready</span>
       </h2>
       <p class="text-[10px] text-slate-400 mb-4">Simulated public announcement dispatch</p>
@@ -19,16 +26,23 @@ type Lang = 'en' | 'es' | 'fr';
       @if (store.latestResult(); as result) {
         @if (authService.isGuest()) {
           <p role="note" class="text-[10px] text-slate-500 italic text-center pb-3">
-            <span aria-hidden="true">🔒</span> Read-only guest session — broadcasting is reserved for authenticated ops staff.
+            <span aria-hidden="true">🔒</span> Read-only guest session — broadcasting is reserved
+            for authenticated ops staff.
           </p>
         }
 
         <div class="space-y-2.5 mb-4">
           @for (lang of langs; track lang) {
-            <div class="bg-slate-950/40 border border-slate-800 rounded-lg p-3 flex items-center justify-between gap-3">
+            <div
+              class="bg-slate-950/40 border border-slate-800 rounded-lg p-3 flex items-center justify-between gap-3"
+            >
               <div class="min-w-0">
-                <span class="text-[10px] font-bold uppercase text-slate-400"><span aria-hidden="true">{{ langFlag(lang) }}</span> {{ lang }}</span>
-                <p class="text-xs text-slate-300 truncate">"{{ result.multilingualScripts[lang] }}"</p>
+                <span class="text-[10px] font-bold uppercase text-slate-400"
+                  ><span aria-hidden="true">{{ langFlag(lang) }}</span> {{ lang }}</span
+                >
+                <p class="text-xs text-slate-300 truncate">
+                  "{{ result.multilingualScripts[lang] }}"
+                </p>
               </div>
               <button
                 type="button"
@@ -53,14 +67,21 @@ type Lang = 'en' | 'es' | 'fr';
         </button>
 
         @if (liveLang(); as lang) {
-          <div class="mt-3 flex items-center justify-center space-x-2 text-red-400 text-xs font-bold animate-pulse" role="status" aria-live="polite">
+          <div
+            class="mt-3 flex items-center justify-center space-x-2 text-red-400 text-xs font-bold animate-pulse"
+            role="status"
+            aria-live="polite"
+          >
             <span class="w-2 h-2 rounded-full bg-red-500" aria-hidden="true"></span>
             <span>LIVE ON AIR ({{ lang.toUpperCase() }}) — {{ countdown() }}s</span>
           </div>
         }
 
         @if (audioError(); as err) {
-          <div class="mt-3 bg-amber-950/40 border border-amber-800/80 px-3 py-2 rounded-lg text-[10px] text-amber-300" role="alert">
+          <div
+            class="mt-3 bg-amber-950/40 border border-amber-800/80 px-3 py-2 rounded-lg text-[10px] text-amber-300"
+            role="alert"
+          >
             <span aria-hidden="true">🔇</span> {{ err }}
           </div>
         }
@@ -70,7 +91,7 @@ type Lang = 'en' | 'es' | 'fr';
         </div>
       }
     </div>
-  `
+  `,
 })
 export class PaBroadcastPanelComponent {
   store = inject(SimulationStore);
@@ -89,7 +110,7 @@ export class PaBroadcastPanelComponent {
   private static readonly LOCALE: Record<Lang, string> = {
     en: 'en-GB',
     es: 'es-ES',
-    fr: 'fr-FR'
+    fr: 'fr-FR',
   };
 
   broadcast(lang: Lang, script: string): void {
@@ -101,7 +122,7 @@ export class PaBroadcastPanelComponent {
 
   broadcastAll(scripts: Record<Lang, string>): void {
     this.playChime();
-    this.langs.forEach(lang => this.speak(scripts[lang], lang));
+    this.langs.forEach((lang) => this.speak(scripts[lang], lang));
     this.startLiveState('EN/ES/FR');
     this.store.addManualNote(`PA Broadcast sent — EN/ES/FR (all languages simultaneously)`);
   }
@@ -127,9 +148,9 @@ export class PaBroadcastPanelComponent {
         this.audioError.set(`Speech synthesis failed for ${lang.toUpperCase()}.`);
       };
       window.speechSynthesis.speak(utterance);
-    } catch (err: any) {
+    } catch (err) {
       console.error('[PA Broadcast] Failed to speak announcement:', err);
-      this.audioError.set('Text-to-speech failed: ' + (err?.message || err));
+      this.audioError.set('Text-to-speech failed: ' + errorMessage(err));
     }
   }
 
@@ -152,7 +173,15 @@ export class PaBroadcastPanelComponent {
   private playChime(): void {
     try {
       if (!this.audioCtx) {
-        this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        // Older WebKit browsers expose the constructor under a vendor prefix.
+        const AudioContextCtor =
+          window.AudioContext ||
+          (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (!AudioContextCtor) {
+          this.audioError.set('Web Audio is not supported in this browser.');
+          return;
+        }
+        this.audioCtx = new AudioContextCtor();
       }
       const ctx = this.audioCtx;
       this.audioError.set(null);
@@ -161,16 +190,19 @@ export class PaBroadcastPanelComponent {
       // resumed — without this, the oscillator schedules silently and no sound plays.
       const start = () => this.emitTwoToneChime(ctx);
       if (ctx.state === 'suspended') {
-        ctx.resume().then(start).catch((err) => {
-          console.error('[PA Broadcast] AudioContext.resume() failed:', err);
-          this.audioError.set('Audio blocked by browser: ' + (err?.message || err));
-        });
+        ctx
+          .resume()
+          .then(start)
+          .catch((err) => {
+            console.error('[PA Broadcast] AudioContext.resume() failed:', err);
+            this.audioError.set('Audio blocked by browser: ' + errorMessage(err));
+          });
       } else {
         start();
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('[PA Broadcast] Failed to play chime:', err);
-      this.audioError.set('Audio failed: ' + (err?.message || err));
+      this.audioError.set('Audio failed: ' + errorMessage(err));
     }
   }
 
@@ -178,7 +210,7 @@ export class PaBroadcastPanelComponent {
     // Two-tone "ding-dong" style PA chime, louder and longer than a single blip
     const tones = [
       { freq: 880, start: 0, duration: 0.35 },
-      { freq: 660, start: 0.3, duration: 0.45 }
+      { freq: 660, start: 0.3, duration: 0.45 },
     ];
 
     for (const tone of tones) {

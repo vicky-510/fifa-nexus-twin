@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { By } from '@angular/platform-browser';
 import { AgencyPanelGridComponent } from './agency-panel-grid.component';
 import { SimulationStore } from '../../../state/simulation.store';
 

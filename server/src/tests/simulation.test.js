@@ -125,7 +125,7 @@ describe('Simulation Endpoints', () => {
     pool.query.mockResolvedValue({ rows: [{ id: 50 }] });
 
     // Mock GeminiService stream generator to yield synchronously for the test
-    const streamSpy = jest.spyOn(GeminiService, 'generateSimulationStream').mockImplementation(async function* (scenario) {
+    const streamSpy = jest.spyOn(GeminiService, 'generateSimulationStream').mockImplementation(async function* (_scenario) {
       yield { text: '{"navigation": "test"' };
       yield { text: '}' };
     });

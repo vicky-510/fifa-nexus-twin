@@ -89,7 +89,7 @@ const SimulationController = {
   /**
    * Triggers an SSE stream simulation
    */
-  async triggerStream(req, res, next) {
+  async triggerStream(req, res, _next) {
     const { scenario, stadiumId } = req.body;
 
     // Set headers for Server-Sent Events (SSE)

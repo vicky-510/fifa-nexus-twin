@@ -1,6 +1,8 @@
 const logger = require('../utils/logger');
 
-function errorHandlerMiddleware(err, req, res, next) {
+// Express identifies an error handler by its 4-argument arity, so the unused
+// `next` parameter must stay in the signature (underscored to satisfy lint).
+function errorHandlerMiddleware(err, req, res, _next) {
   // Log full error details server-side
   logger.error(`Unhandled error during ${req.method} ${req.originalUrl}`, err);
 

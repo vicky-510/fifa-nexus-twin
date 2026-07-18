@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
@@ -54,42 +54,54 @@ export interface PredictiveForecast {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SimulationService {
-  private apiUrl = `${environment.apiUrl}/api`;
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
 
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService
-  ) {}
+  private apiUrl = `${environment.apiUrl}/api`;
 
   /**
    * Synchronous trigger request
    */
   trigger(stadiumId: string, scenario: string): Observable<SimulationRecord> {
-    return this.http.post<SimulationRecord>(`${this.apiUrl}/simulation-trigger`, { stadiumId, scenario });
+    return this.http.post<SimulationRecord>(`${this.apiUrl}/simulation-trigger`, {
+      stadiumId,
+      scenario,
+    });
   }
 
   /**
    * Escalates an active simulation to the next severity level
    */
   escalate(simulationId: number): Observable<SimulationRecord> {
-    return this.http.post<SimulationRecord>(`${this.apiUrl}/simulation-trigger/escalate`, { simulationId });
+    return this.http.post<SimulationRecord>(`${this.apiUrl}/simulation-trigger/escalate`, {
+      simulationId,
+    });
   }
 
   /**
    * Predictive risk forecast (not persisted)
    */
   predict(stadiumId: string): Observable<PredictiveForecast> {
-    return this.http.post<PredictiveForecast>(`${this.apiUrl}/simulation-trigger/predict`, { stadiumId });
+    return this.http.post<PredictiveForecast>(`${this.apiUrl}/simulation-trigger/predict`, {
+      stadiumId,
+    });
   }
 
   /**
    * Append a manual/system note to a simulation's crisis timeline
    */
-  addTimelineEntry(simulationId: number, type: string, message: string): Observable<SimulationRecord> {
-    return this.http.post<SimulationRecord>(`${this.apiUrl}/simulation/${simulationId}/timeline`, { type, message });
+  addTimelineEntry(
+    simulationId: number,
+    type: string,
+    message: string,
+  ): Observable<SimulationRecord> {
+    return this.http.post<SimulationRecord>(`${this.apiUrl}/simulation/${simulationId}/timeline`, {
+      type,
+      message,
+    });
   }
 
   /**
@@ -112,9 +124,14 @@ export class SimulationService {
   async triggerStream(
     stadiumId: string,
     scenario: string,
-    onChunk: (payload: { text?: string; done?: boolean; record?: SimulationRecord; error?: string }) => void,
+    onChunk: (payload: {
+      text?: string;
+      done?: boolean;
+      record?: SimulationRecord;
+      error?: string;
+    }) => void,
     onComplete: () => void,
-    onError: (err: any) => void
+    onError: (err: unknown) => void,
   ): Promise<void> {
     const token = this.authService.getToken();
 
@@ -123,9 +140,9 @@ export class SimulationService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ stadiumId, scenario })
+        body: JSON.stringify({ stadiumId, scenario }),
       });
 
       if (!response.ok) {
@@ -159,7 +176,7 @@ export class SimulationService {
             try {
               const payload = JSON.parse(dataStr);
               onChunk(payload);
-            } catch (err) {
+            } catch {
               // Ignore partial JSON parse errors
             }
           }
@@ -173,7 +190,9 @@ export class SimulationService {
         try {
           const payload = JSON.parse(dataStr);
           onChunk(payload);
-        } catch (err) {}
+        } catch {
+          // Ignore a trailing partial SSE frame — the stream already ended.
+        }
       }
 
       onComplete();

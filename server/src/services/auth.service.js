@@ -112,7 +112,7 @@ const AuthService = {
       }
 
       return payload;
-    } catch (err) {
+    } catch {
       return null;
     }
   },

@@ -51,7 +51,7 @@ export class SimulationStore {
           this.selectRecord(data[0]);
         }
       },
-      error: (err) => {
+      error: () => {
         this.error.set('Failed to load simulation history.');
       }
     });
@@ -72,7 +72,7 @@ export class SimulationStore {
       finalize(() => this.isLoading.set(false))
     ).subscribe({
       next: (record) => this.applyRecord(record, true),
-      error: (err) => {
+      error: () => {
         this.error.set('Failed to run simulation. Check connection.');
       }
     });
@@ -108,7 +108,7 @@ export class SimulationStore {
         this.isStreaming.set(false);
         this.isLoading.set(false);
       },
-      (err) => {
+      () => {
         this.error.set('Connection to simulation stream lost.');
         this.isStreaming.set(false);
         this.isLoading.set(false);

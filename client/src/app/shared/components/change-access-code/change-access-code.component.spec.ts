@@ -209,7 +209,6 @@ describe('ChangeAccessCodeComponent', () => {
 
     it('should wrap focus from the last to the first focusable element on Tab', () => {
       const fixture = createComponent();
-      const component = fixture.componentInstance;
       const triggerButton: HTMLButtonElement = fixture.nativeElement.querySelector('button');
 
       triggerButton.click();
@@ -230,7 +229,6 @@ describe('ChangeAccessCodeComponent', () => {
 
     it('should wrap focus from the first to the last focusable element on Shift+Tab', () => {
       const fixture = createComponent();
-      const component = fixture.componentInstance;
       const triggerButton: HTMLButtonElement = fixture.nativeElement.querySelector('button');
 
       triggerButton.click();

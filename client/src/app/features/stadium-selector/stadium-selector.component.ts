@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Router } from '@angular/router';
 import { StadiumStore } from '../../state/stadium.store';
 import { AuthService } from '../../core/services/auth.service';
@@ -10,16 +10,25 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
 @Component({
   selector: 'app-stadium-selector',
   standalone: true,
-  imports: [CommonModule, AccessibilityToggleComponent, ChangeAccessCodeComponent],
+  imports: [AccessibilityToggleComponent, ChangeAccessCodeComponent],
   template: `
     <div class="min-h-screen bg-[#020817] text-slate-100 flex flex-col font-sans page-fade-in">
-
-      <header class="bg-slate-900/40 border-b border-slate-800/80 px-4 sm:px-6 py-4 flex flex-col lg:flex-row justify-between items-center gap-4 backdrop-blur">
+      <header
+        class="bg-slate-900/40 border-b border-slate-800/80 px-4 sm:px-6 py-4 flex flex-col lg:flex-row justify-between items-center gap-4 backdrop-blur"
+      >
         <div class="flex items-center space-x-3.5 self-start lg:self-auto">
-          <div class="w-10 h-10 shrink-0 rounded-lg bg-amber-500 flex items-center justify-center font-black text-slate-950 text-xl tracking-tighter">SP</div>
+          <div
+            class="w-10 h-10 shrink-0 rounded-lg bg-amber-500 flex items-center justify-center font-black text-slate-950 text-xl tracking-tighter"
+          >
+            SP
+          </div>
           <div>
-            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white leading-none">FIFA Nexus Twin</h1>
-            <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Select a Venue — World Cup 2026</p>
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white leading-none">
+              FIFA Nexus Twin
+            </h1>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+              Select a Venue — World Cup 2026
+            </p>
           </div>
         </div>
         <div class="flex flex-wrap items-center justify-center lg:justify-end gap-2">
@@ -46,13 +55,20 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
       </header>
 
       <main class="flex-1 max-w-[1400px] w-full mx-auto p-3 sm:p-6 flex flex-col gap-6">
-
         <!-- North America Map -->
-        <div class="relative bg-slate-900/40 border border-slate-800 rounded-2xl p-3 sm:p-6 backdrop-blur shadow-xl">
-          <svg viewBox="0 0 79.39 100" class="w-full h-[340px] sm:h-[480px] absolute inset-0" preserveAspectRatio="none" role="img" aria-label="Map of North America showing World Cup 2026 stadium locations">
+        <div
+          class="relative bg-slate-900/40 border border-slate-800 rounded-2xl p-3 sm:p-6 backdrop-blur shadow-xl"
+        >
+          <svg
+            viewBox="0 0 79.39 100"
+            class="w-full h-[340px] sm:h-[480px] absolute inset-0"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label="Map of North America showing World Cup 2026 stadium locations"
+          >
             <defs>
               <pattern id="grid" width="4" height="5" patternUnits="userSpaceOnUse">
-                <path d="M 4 0 L 0 0 0 5" fill="none" stroke="#00D4FF" stroke-width="0.15"/>
+                <path d="M 4 0 L 0 0 0 5" fill="none" stroke="#00D4FF" stroke-width="0.15" />
               </pattern>
             </defs>
             <rect width="79.39" height="100" fill="url(#grid)" opacity="0.05" />
@@ -96,18 +112,37 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
 
           <!-- Hover Tooltip -->
           @if (hoveredStadium(); as s) {
-            <div class="absolute bottom-3 left-3 right-3 sm:right-auto sm:bottom-6 sm:left-6 bg-slate-950/95 border border-slate-700 rounded-xl p-3 sm:p-4 shadow-2xl sm:max-w-xs z-10" role="status">
-              <div class="font-bold text-white text-sm mb-1"><span aria-hidden="true">{{ s.flag }}</span> {{ s.name }}</div>
-              <div class="text-xs text-slate-400 mb-2"><span aria-hidden="true">📍</span> {{ s.city }} · <span aria-hidden="true">👥</span> {{ s.capacity.toLocaleString() }}</div>
+            <div
+              class="absolute bottom-3 left-3 right-3 sm:right-auto sm:bottom-6 sm:left-6 bg-slate-950/95 border border-slate-700 rounded-xl p-3 sm:p-4 shadow-2xl sm:max-w-xs z-10"
+              role="status"
+            >
+              <div class="font-bold text-white text-sm mb-1">
+                <span aria-hidden="true">{{ s.flag }}</span> {{ s.name }}
+              </div>
+              <div class="text-xs text-slate-400 mb-2">
+                <span aria-hidden="true">📍</span> {{ s.city }} · <span aria-hidden="true">👥</span>
+                {{ s.capacity.toLocaleString() }}
+              </div>
               <div class="text-xs text-amber-400">{{ s.role }}</div>
             </div>
           }
 
           <!-- Legend -->
-          <div class="absolute top-3 right-3 sm:top-6 sm:right-6 bg-slate-950/70 border border-slate-800 rounded-lg p-2 sm:p-3 text-[9px] sm:text-[10px] space-y-1 sm:space-y-1.5">
-            <div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true"></span><span>Live now</span></div>
-            <div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true"></span><span>Upcoming / Final</span></div>
-            <div class="flex items-center space-x-2"><span class="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true"></span><span>Complete</span></div>
+          <div
+            class="absolute top-3 right-3 sm:top-6 sm:right-6 bg-slate-950/70 border border-slate-800 rounded-lg p-2 sm:p-3 text-[9px] sm:text-[10px] space-y-1 sm:space-y-1.5"
+          >
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse" aria-hidden="true"></span
+              ><span>Live now</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true"></span
+              ><span>Upcoming / Final</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true"></span
+              ><span>Complete</span>
+            </div>
           </div>
         </div>
 
@@ -121,26 +156,39 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
               class="text-left p-3.5 rounded-xl border border-slate-800 bg-slate-900/50 hover:border-cyan-500/60 hover:bg-slate-900 transition-all cursor-pointer"
             >
               <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-bold text-white"><span aria-hidden="true">{{ stadium.flag }}</span> {{ stadium.shortName }}</span>
-                <span class="w-2 h-2 rounded-full" aria-hidden="true" [style.background]="stadium.color"></span>
+                <span class="text-xs font-bold text-white"
+                  ><span aria-hidden="true">{{ stadium.flag }}</span> {{ stadium.shortName }}</span
+                >
+                <span
+                  class="w-2 h-2 rounded-full"
+                  aria-hidden="true"
+                  [style.background]="stadium.color"
+                ></span>
               </div>
               <div class="text-[10px] text-slate-500">{{ stadium.city }}</div>
             </button>
           }
         </div>
-
       </main>
     </div>
   `,
-  styles: [`
-    @keyframes pageFadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .page-fade-in {
-      animation: pageFadeIn 0.35s ease-out both;
-    }
-  `]
+  styles: [
+    `
+      @keyframes pageFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .page-fade-in {
+        animation: pageFadeIn 0.35s ease-out both;
+      }
+    `,
+  ],
 })
 export class StadiumSelectorComponent implements OnInit {
   store = inject(StadiumStore);

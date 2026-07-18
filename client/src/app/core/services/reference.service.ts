@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -57,12 +57,12 @@ export interface CrisisScenario {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ReferenceService {
-  private apiUrl = `${environment.apiUrl}/api`;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private apiUrl = `${environment.apiUrl}/api`;
 
   getStadiums(): Observable<Stadium[]> {
     return this.http.get<Stadium[]>(`${this.apiUrl}/stadiums`);

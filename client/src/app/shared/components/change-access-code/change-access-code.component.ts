@@ -1,13 +1,24 @@
-import { Component, signal, inject, ElementRef, Renderer2, AfterViewInit, OnDestroy, ViewChild, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  signal,
+  inject,
+  ElementRef,
+  Renderer2,
+  AfterViewInit,
+  OnDestroy,
+  ViewChild,
+  effect,
+} from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { trapFocus } from '../../a11y/focus-trap';
 
 @Component({
   selector: 'app-change-access-code',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   template: `
     <button
       type="button"
@@ -27,7 +38,13 @@ import { AuthService } from '../../../core/services/auth.service';
     -->
     <div #modalRoot>
       @if (isOpen()) {
-        <div class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" (click)="close()">
+        <!-- Backdrop click-to-close is a mouse-only affordance by design; keyboard
+             users close via Escape on the dialog itself, so the scrim is presentational. -->
+        <div
+          role="presentation"
+          class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          (click)="close()"
+        >
           <div
             #dialogEl
             class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
@@ -37,14 +54,20 @@ import { AuthService } from '../../../core/services/auth.service';
             (click)="$event.stopPropagation()"
             (keydown)="onDialogKeydown($event)"
           >
-            <h2 id="changeAccessCodeHeading" class="text-lg font-bold text-white mb-1">Rotate Shared Access Code</h2>
+            <h2 id="changeAccessCodeHeading" class="text-lg font-bold text-white mb-1">
+              Rotate Shared Access Code
+            </h2>
             <p class="text-xs text-slate-400 mb-5">
-              You choose the new code — it's never shown or transmitted anywhere else, so relay it to the rest of the ops team yourself (radio, shift briefing, etc.). This will log everyone out, including you.
+              You choose the new code — it's never shown or transmitted anywhere else, so relay it
+              to the rest of the ops team yourself (radio, shift briefing, etc.). This will log
+              everyone out, including you.
             </p>
 
             <form (ngSubmit)="onSubmit()" class="space-y-4">
               <div>
-                <label for="currentCode" class="block text-xs font-medium text-slate-300 mb-1">Current Code</label>
+                <label for="currentCode" class="block text-xs font-medium text-slate-300 mb-1"
+                  >Current Code</label
+                >
                 <input
                   #firstFocusable
                   id="currentCode"
@@ -57,7 +80,9 @@ import { AuthService } from '../../../core/services/auth.service';
                 />
               </div>
               <div>
-                <label for="newCode" class="block text-xs font-medium text-slate-300 mb-1">New Code (min. 6 characters)</label>
+                <label for="newCode" class="block text-xs font-medium text-slate-300 mb-1"
+                  >New Code (min. 6 characters)</label
+                >
                 <input
                   id="newCode"
                   type="password"
@@ -70,7 +95,9 @@ import { AuthService } from '../../../core/services/auth.service';
                 />
               </div>
               <div>
-                <label for="confirmCode" class="block text-xs font-medium text-slate-300 mb-1">Confirm New Code</label>
+                <label for="confirmCode" class="block text-xs font-medium text-slate-300 mb-1"
+                  >Confirm New Code</label
+                >
                 <input
                   id="confirmCode"
                   type="password"
@@ -83,13 +110,19 @@ import { AuthService } from '../../../core/services/auth.service';
               </div>
 
               @if (errorMessage()) {
-                <div class="bg-red-950/40 border border-red-800/80 px-3 py-2 rounded-lg text-xs text-red-300" role="alert">
+                <div
+                  class="bg-red-950/40 border border-red-800/80 px-3 py-2 rounded-lg text-xs text-red-300"
+                  role="alert"
+                >
                   {{ errorMessage() }}
                 </div>
               }
 
               @if (successMessage()) {
-                <div class="bg-emerald-950/40 border border-emerald-800/80 px-3 py-2 rounded-lg text-xs text-emerald-300" role="status">
+                <div
+                  class="bg-emerald-950/40 border border-emerald-800/80 px-3 py-2 rounded-lg text-xs text-emerald-300"
+                  role="status"
+                >
                   {{ successMessage() }}
                 </div>
               }
@@ -117,7 +150,7 @@ import { AuthService } from '../../../core/services/auth.service';
         </div>
       }
     </div>
-  `
+  `,
 })
 export class ChangeAccessCodeComponent implements AfterViewInit, OnDestroy {
   private authService = inject(AuthService);
@@ -183,41 +216,9 @@ export class ChangeAccessCodeComponent implements AfterViewInit, OnDestroy {
       this.close();
       return;
     }
-    if (event.key === 'Tab') {
-      this.trapFocus(event);
-    }
-  }
-
-  /** Keeps Tab / Shift+Tab cycling within the dialog while it's open. */
-  private trapFocus(event: KeyboardEvent): void {
     const dialog = this.dialogEl?.nativeElement;
-    if (!dialog) {
-      return;
-    }
-
-    const focusable = Array.from(
-      dialog.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      )
-    );
-    if (focusable.length === 0) {
-      return;
-    }
-
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    const active = document.activeElement as HTMLElement | null;
-
-    if (event.shiftKey) {
-      if (active === first || !active || !dialog.contains(active)) {
-        event.preventDefault();
-        last.focus();
-      }
-    } else {
-      if (active === last || !active || !dialog.contains(active)) {
-        event.preventDefault();
-        first.focus();
-      }
+    if (dialog) {
+      trapFocus(dialog, event);
     }
   }
 
@@ -244,7 +245,7 @@ export class ChangeAccessCodeComponent implements AfterViewInit, OnDestroy {
       error: (err) => {
         this.isLoading.set(false);
         this.errorMessage.set(err?.error?.error || 'Failed to change access code.');
-      }
+      },
     });
   }
 }

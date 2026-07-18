@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable, tap, catchError, throwError } from 'rxjs';
@@ -9,21 +9,23 @@ const ROLE_STORAGE_KEY = 'stadiumpulse_role';
 export type SessionRole = 'ops_staff' | 'guest';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
+  private http = inject(HttpClient);
+
   private apiUrl = `${environment.apiUrl}/api/auth`;
 
   // Session-scoped signal, rehydrated from sessionStorage on construction so a
   // page refresh doesn't lose the session (sessionStorage clears when the tab/
   // browser closes, unlike localStorage, which suits a shared ops-desk terminal).
   private tokenSignal = signal<string | null>(this.readStored(TOKEN_STORAGE_KEY));
-  private roleSignal = signal<SessionRole | null>(this.readStored(ROLE_STORAGE_KEY) as SessionRole | null);
+  private roleSignal = signal<SessionRole | null>(
+    this.readStored(ROLE_STORAGE_KEY) as SessionRole | null,
+  );
 
   isAuthenticated = computed(() => !!this.tokenSignal());
   isGuest = computed(() => this.roleSignal() === 'guest');
-
-  constructor(private http: HttpClient) {}
 
   private readStored(key: string): string | null {
     try {
@@ -53,31 +55,33 @@ export class AuthService {
   }
 
   verifyCode(code: string): Observable<{ token: string; role: SessionRole }> {
-    return this.http.post<{ token: string; role: SessionRole }>(`${this.apiUrl}/verify`, { code }).pipe(
-      tap(response => {
-        if (response && response.token) {
-          this.setSession(response.token, response.role || 'ops_staff');
-        }
-      }),
-      catchError(err => {
-        this.logout();
-        return throwError(() => err);
-      })
-    );
+    return this.http
+      .post<{ token: string; role: SessionRole }>(`${this.apiUrl}/verify`, { code })
+      .pipe(
+        tap((response) => {
+          if (response && response.token) {
+            this.setSession(response.token, response.role || 'ops_staff');
+          }
+        }),
+        catchError((err) => {
+          this.logout();
+          return throwError(() => err);
+        }),
+      );
   }
 
   /** Issues a read-only guest session — no access code required. */
   guestLogin(): Observable<{ token: string; role: SessionRole }> {
     return this.http.post<{ token: string; role: SessionRole }>(`${this.apiUrl}/guest`, {}).pipe(
-      tap(response => {
+      tap((response) => {
         if (response && response.token) {
           this.setSession(response.token, response.role || 'guest');
         }
       }),
-      catchError(err => {
+      catchError((err) => {
         this.logout();
         return throwError(() => err);
-      })
+      }),
     );
   }
 
@@ -98,6 +102,9 @@ export class AuthService {
    * so callers should log out and redirect to re-authentication afterward.
    */
   changeCode(currentCode: string, newCode: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/change-code`, { currentCode, newCode });
+    return this.http.post<{ message: string }>(`${this.apiUrl}/change-code`, {
+      currentCode,
+      newCode,
+    });
   }
 }

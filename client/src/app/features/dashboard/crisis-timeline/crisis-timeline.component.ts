@@ -1,32 +1,47 @@
-import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
+
 import { SimulationStore } from '../../../state/simulation.store';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-crisis-timeline',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div>
-      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Crisis Timeline</h2>
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+        Crisis Timeline
+      </h2>
 
       @if (store.crisisTimeline().length > 0) {
-        <div class="space-y-1.5 max-h-[220px] overflow-y-auto pr-1 mb-3" role="log" aria-live="polite" aria-label="Crisis timeline events">
+        <div
+          class="space-y-1.5 max-h-[220px] overflow-y-auto pr-1 mb-3"
+          role="log"
+          aria-live="polite"
+          aria-label="Crisis timeline events"
+        >
           @for (entry of store.crisisTimeline(); track entry.timestamp) {
             <div class="text-[10px] font-mono flex items-start space-x-2">
-              <span class="text-slate-600 whitespace-nowrap">[{{ formatTime(entry.timestamp) }}]</span>
-              <span [class]="typeColor(entry.type)"><span aria-hidden="true">{{ typeIcon(entry.type) }}</span> {{ entry.type }}: {{ entry.message }}</span>
+              <span class="text-slate-600 whitespace-nowrap"
+                >[{{ formatTime(entry.timestamp) }}]</span
+              >
+              <span [class]="typeColor(entry.type)"
+                ><span aria-hidden="true">{{ typeIcon(entry.type) }}</span> {{ entry.type }}:
+                {{ entry.message }}</span
+              >
             </div>
           }
         </div>
       } @else {
-        <p class="text-[10px] text-slate-600 italic mb-3">No active crisis timeline. Trigger a scenario to begin logging.</p>
+        <p class="text-[10px] text-slate-600 italic mb-3">
+          No active crisis timeline. Trigger a scenario to begin logging.
+        </p>
       }
 
       @if (authService.isGuest()) {
         <p role="note" class="text-[10px] text-slate-500 italic mb-1.5">
-          <span aria-hidden="true">🔒</span> Read-only guest session — adding notes is reserved for authenticated ops staff.
+          <span aria-hidden="true">🔒</span> Read-only guest session — adding notes is reserved for
+          authenticated ops staff.
         </p>
       }
 
@@ -51,7 +66,7 @@ import { AuthService } from '../../../core/services/auth.service';
         </button>
       </div>
     </div>
-  `
+  `,
 })
 export class CrisisTimelineComponent {
   store = inject(SimulationStore);
@@ -65,7 +80,11 @@ export class CrisisTimelineComponent {
 
   formatTime(ts: string): string {
     try {
-      return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      return new Date(ts).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
     } catch {
       return ts;
     }
@@ -78,7 +97,7 @@ export class CrisisTimelineComponent {
       note: '📝',
       broadcast: '📢',
       signage: '📺',
-      dispatch: '📨'
+      dispatch: '📨',
     };
     return icons[type] || '✅';
   }
@@ -90,7 +109,7 @@ export class CrisisTimelineComponent {
       note: 'text-slate-300',
       broadcast: 'text-cyan-400',
       signage: 'text-purple-400',
-      dispatch: 'text-emerald-400'
+      dispatch: 'text-emerald-400',
     };
     return colors[type] || 'text-slate-400';
   }

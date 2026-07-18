@@ -20,6 +20,7 @@ jobs:
         with:
           node-version: '24'
       - run: npm install
+      - run: npm run lint
       - run: npm test
 
   frontend-tests:
@@ -33,4 +34,5 @@ jobs:
         with:
           node-version: '24'
       - run: npm install
+      - run: npm run lint
       - run: npx ng test --watch=false --browsers=ChromeHeadlessCI

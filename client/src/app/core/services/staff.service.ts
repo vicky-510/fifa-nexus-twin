@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -16,14 +16,16 @@ export interface PublicSimulationRecord {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class StaffService {
+  private http = inject(HttpClient);
+
   private apiUrl = `${environment.apiUrl}/api`;
 
-  constructor(private http: HttpClient) {}
-
   getPublicRecord(simulationId: string): Observable<PublicSimulationRecord> {
-    return this.http.get<PublicSimulationRecord>(`${this.apiUrl}/simulation/${simulationId}/public`);
+    return this.http.get<PublicSimulationRecord>(
+      `${this.apiUrl}/simulation/${simulationId}/public`,
+    );
   }
 }
