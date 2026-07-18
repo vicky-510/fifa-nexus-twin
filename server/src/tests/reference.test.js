@@ -164,4 +164,13 @@ describe('Reference Endpoints', () => {
     expect(res.statusCode).toEqual(200);
     expect(res.body.length).toBe(16);
   });
+
+  it('should serve reference data with a private short-lived cache header', async () => {
+    const res = await request(app)
+      .get('/api/stadiums')
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.headers['cache-control']).toBe('private, max-age=300');
+  });
 });

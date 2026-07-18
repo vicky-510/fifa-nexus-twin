@@ -1,59 +1,36 @@
-# Client
+# StadiumPulse — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.19.
+Angular 21 single-page app for the StadiumPulse crisis-simulation console. See the
+[root README](../README.md) for the full project overview, architecture diagram,
+and deployment details.
 
-## Development server
+## Structure
 
-To start a local development server, run:
-
-```bash
-ng serve
+```
+src/app/
+├── core/          # Auth guard, HTTP interceptor, API/auth/reference/simulation services
+├── state/         # Signal-based stores (simulation.store, stadium.store)
+├── features/
+│   ├── auth/              # Access-code login + guest entry
+│   ├── stadium-selector/  # Venue picker (interactive map)
+│   ├── global-overview/   # Tournament-wide status board
+│   ├── dashboard/         # Ops console: scenario deck, live terminal, agency panels,
+│   │                      # PA broadcast, signage preview, QR dispatch, crisis timeline
+│   └── staff-mobile/      # Public QR-scanned staff directive card
+└── shared/        # Accessibility toggle, change-access-code dialog, focus-trap utility
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Key conventions: standalone components, `inject()` for DI, built-in `@if`/`@for`
+control flow, Signal-based state (no NgRx), Tailwind CSS, zoneless change detection.
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Commands
 
 ```bash
-ng generate --help
+npm start        # dev server on http://localhost:4200 (expects the backend on :3000)
+npm run build    # production build to dist/ (all feature routes lazy-loaded)
+npm test         # Karma + Jasmine, headless Chrome — run with --watch=false for CI mode
+npm run lint     # angular-eslint (TypeScript + template accessibility rules)
 ```
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+The dev build points at `http://localhost:3000` (see `src/environments/environment.ts`);
+production builds swap in `environment.prod.ts` via file replacement.

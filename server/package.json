@@ -2,6 +2,7 @@
   "name": "stadiumpulse-server",
   "version": "1.0.0",
   "description": "GenAI-powered crisis simulation and command dashboard backend for World Cup 2026",
+  "license": "MIT",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

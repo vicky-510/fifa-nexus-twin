@@ -1,6 +1,8 @@
 {
-  "name": "client",
-  "version": "0.0.0",
+  "name": "stadiumpulse-client",
+  "version": "1.0.0",
+  "description": "Angular frontend for StadiumPulse — GenAI crisis simulation and command dashboard for FIFA World Cup 2026 stadium operations",
+  "license": "MIT",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
