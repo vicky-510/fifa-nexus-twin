@@ -9,7 +9,7 @@ describe('AccessCodeEntryComponent', () => {
   let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    authServiceSpy = jasmine.createSpyObj('AuthService', ['verifyCode']);
+    authServiceSpy = jasmine.createSpyObj('AuthService', ['verifyCode', 'guestLogin']);
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
@@ -45,7 +45,7 @@ describe('AccessCodeEntryComponent', () => {
   });
 
   it('should authenticate and navigate to root on valid code submission', () => {
-    authServiceSpy.verifyCode.and.returnValue(of({ token: 'abc123' }));
+    authServiceSpy.verifyCode.and.returnValue(of({ token: 'abc123', role: 'ops_staff' }));
     const fixture = createComponent();
     const component = fixture.componentInstance;
 
@@ -72,7 +72,7 @@ describe('AccessCodeEntryComponent', () => {
   });
 
   it('should trim whitespace from the access code before verifying', () => {
-    authServiceSpy.verifyCode.and.returnValue(of({ token: 'abc123' }));
+    authServiceSpy.verifyCode.and.returnValue(of({ token: 'abc123', role: 'ops_staff' }));
     const fixture = createComponent();
     const component = fixture.componentInstance;
 
@@ -101,5 +101,31 @@ describe('AccessCodeEntryComponent', () => {
 
     const button: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
     expect(button.disabled).toBe(true);
+  });
+
+  describe('guest login', () => {
+    it('should start a guest session and navigate to root', () => {
+      authServiceSpy.guestLogin.and.returnValue(of({ token: 'guest-token', role: 'guest' }));
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+
+      component.onGuestLogin();
+
+      expect(authServiceSpy.guestLogin).toHaveBeenCalled();
+      expect(component.isGuestLoading()).toBe(false);
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/']);
+    });
+
+    it('should show an error if guest login fails', () => {
+      authServiceSpy.guestLogin.and.returnValue(throwError(() => new Error('boom')));
+      const fixture = createComponent();
+      const component = fixture.componentInstance;
+
+      component.onGuestLogin();
+
+      expect(component.isGuestLoading()).toBe(false);
+      expect(component.errorMessage()).toBe('Could not start a guest session. Please try again.');
+      expect(routerSpy.navigate).not.toHaveBeenCalled();
+    });
   });
 });

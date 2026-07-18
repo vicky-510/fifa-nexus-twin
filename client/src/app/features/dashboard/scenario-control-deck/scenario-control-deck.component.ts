@@ -2,6 +2,7 @@ import { Component, signal, inject, Input, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SimulationStore } from '../../../state/simulation.store';
 import { StadiumStore } from '../../../state/stadium.store';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-scenario-control-deck',
@@ -78,11 +79,17 @@ import { StadiumStore } from '../../../state/stadium.store';
       </div>
 
       <div class="space-y-2">
+        @if (authService.isGuest()) {
+          <p role="note" class="text-[10px] text-slate-500 italic text-center pb-1">
+            <span aria-hidden="true">🔒</span> Read-only guest session — triggering is reserved for authenticated ops staff.
+          </p>
+        }
+
         <!-- Trigger Action Button -->
         <button
           type="button"
           (click)="onTrigger()"
-          [disabled]="store.isLoading() || !selectedScenario()"
+          [disabled]="isReadOnly() || store.isLoading() || !selectedScenario()"
           [attr.aria-busy]="store.isLoading()"
           class="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold py-3 rounded-lg flex items-center justify-center space-x-2 cursor-pointer shadow-md active:scale-[0.98] transition-all"
         >
@@ -95,7 +102,7 @@ import { StadiumStore } from '../../../state/stadium.store';
           <button
             type="button"
             (click)="store.escalate()"
-            [disabled]="!store.activeSimulationId() || store.isLoading()"
+            [disabled]="isReadOnly() || !store.activeSimulationId() || store.isLoading()"
             aria-label="Escalate active crisis"
             class="px-3 py-2.5 bg-red-500/10 hover:bg-red-500/20 disabled:opacity-40 border border-red-500/30 text-red-400 font-bold rounded-lg text-xs uppercase tracking-wider cursor-pointer transition-all"
           >
@@ -104,7 +111,7 @@ import { StadiumStore } from '../../../state/stadium.store';
           <button
             type="button"
             (click)="onPredict()"
-            [disabled]="store.isPredicting()"
+            [disabled]="isReadOnly() || store.isPredicting()"
             [attr.aria-busy]="store.isPredicting()"
             aria-label="Predict operational risk"
             class="px-3 py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 disabled:opacity-40 border border-cyan-500/30 text-cyan-400 font-bold rounded-lg text-xs uppercase tracking-wider cursor-pointer transition-all"
@@ -119,8 +126,10 @@ import { StadiumStore } from '../../../state/stadium.store';
 export class ScenarioControlDeckComponent {
   store = inject(SimulationStore);
   stadiumStore = inject(StadiumStore);
+  authService = inject(AuthService);
 
   @Input() stadiumId: string | null = null;
+  isReadOnly = this.authService.isGuest;
 
   selectedScenario = signal<string>('');
   streamMode = signal<boolean>(true);

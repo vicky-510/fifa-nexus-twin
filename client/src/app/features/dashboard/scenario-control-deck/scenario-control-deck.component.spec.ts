@@ -3,6 +3,7 @@ import { signal } from '@angular/core';
 import { ScenarioControlDeckComponent } from './scenario-control-deck.component';
 import { SimulationStore } from '../../../state/simulation.store';
 import { StadiumStore } from '../../../state/stadium.store';
+import { AuthService } from '../../../core/services/auth.service';
 import { CrisisScenario } from '../../../core/services/reference.service';
 
 describe('ScenarioControlDeckComponent', () => {
@@ -16,6 +17,7 @@ describe('ScenarioControlDeckComponent', () => {
     predictRisk: jasmine.Spy;
   };
   let stadiumStoreStub: { availableScenarios: ReturnType<typeof signal<CrisisScenario[]>> };
+  let authServiceStub: { isGuest: ReturnType<typeof signal<boolean>> };
 
   const scenarios: CrisisScenario[] = [
     { id: 'stampede', label: 'Stampede', category: 'Crowd', icon: '🏃', severityLevel: 3, escalatesTo: null, promptFragment: '', agencyFocus: [] },
@@ -33,12 +35,14 @@ describe('ScenarioControlDeckComponent', () => {
       predictRisk: jasmine.createSpy('predictRisk')
     };
     stadiumStoreStub = { availableScenarios: signal<CrisisScenario[]>([]) };
+    authServiceStub = { isGuest: signal(false) };
 
     await TestBed.configureTestingModule({
       imports: [ScenarioControlDeckComponent],
       providers: [
         { provide: SimulationStore, useValue: simStoreStub },
-        { provide: StadiumStore, useValue: stadiumStoreStub }
+        { provide: StadiumStore, useValue: stadiumStoreStub },
+        { provide: AuthService, useValue: authServiceStub }
       ]
     }).compileComponents();
   });
@@ -150,5 +154,49 @@ describe('ScenarioControlDeckComponent', () => {
     escalateBtn.click();
 
     expect(simStoreStub.escalate).toHaveBeenCalled();
+  });
+
+  describe('guest (read-only) restrictions', () => {
+    it('should disable trigger, escalate, and predict buttons for a guest session', () => {
+      authServiceStub.isGuest.set(true);
+      stadiumStoreStub.availableScenarios.set(scenarios);
+      simStoreStub.activeSimulationId.set(5);
+      const fixture = TestBed.createComponent(ScenarioControlDeckComponent);
+      fixture.componentInstance.stadiumId = 'st1';
+      fixture.detectChanges();
+      TestBed.flushEffects();
+      fixture.detectChanges();
+
+      const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
+      const triggerBtn = buttons.find(b => b.textContent?.includes('Trigger Ops Directive'))!;
+      const escalateBtn = buttons.find(b => b.textContent?.includes('Escalate'))!;
+      const predictBtn = buttons.find(b => b.textContent?.includes('Predict Risk'))!;
+
+      expect(triggerBtn.disabled).toBe(true);
+      expect(escalateBtn.disabled).toBe(true);
+      expect(predictBtn.disabled).toBe(true);
+      expect(fixture.nativeElement.textContent).toContain('Read-only guest session');
+    });
+
+    it('should leave the buttons enabled for a full-access session', () => {
+      authServiceStub.isGuest.set(false);
+      stadiumStoreStub.availableScenarios.set(scenarios);
+      simStoreStub.activeSimulationId.set(5);
+      const fixture = TestBed.createComponent(ScenarioControlDeckComponent);
+      fixture.componentInstance.stadiumId = 'st1';
+      fixture.detectChanges();
+      TestBed.flushEffects();
+      fixture.detectChanges();
+
+      const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
+      const triggerBtn = buttons.find(b => b.textContent?.includes('Trigger Ops Directive'))!;
+      const escalateBtn = buttons.find(b => b.textContent?.includes('Escalate'))!;
+      const predictBtn = buttons.find(b => b.textContent?.includes('Predict Risk'))!;
+
+      expect(triggerBtn.disabled).toBe(false);
+      expect(escalateBtn.disabled).toBe(false);
+      expect(predictBtn.disabled).toBe(false);
+      expect(fixture.nativeElement.textContent).not.toContain('Read-only guest session');
+    });
   });
 });

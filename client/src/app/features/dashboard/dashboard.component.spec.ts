@@ -60,7 +60,7 @@ describe('DashboardComponent', () => {
       providers: [
         { provide: SimulationStore, useValue: simulationStoreStub },
         { provide: StadiumStore, useValue: stadiumStoreStub },
-        { provide: AuthService, useValue: { logout: logoutSpy } },
+        { provide: AuthService, useValue: { logout: logoutSpy, isGuest: signal(false) } },
         { provide: Router, useValue: { navigate: navigateSpy } },
         { provide: ActivatedRoute, useValue: { paramMap: paramMapSubject.asObservable() } }
       ]

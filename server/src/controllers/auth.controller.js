@@ -20,7 +20,20 @@ const AuthController = {
       }
 
       logger.info(`Access code successfully verified. IP: ${req.ip}`);
-      return res.json({ token });
+      return res.json({ token, role: 'ops_staff' });
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /**
+   * Issues a read-only guest token — no access code required.
+   */
+  async guestLogin(req, res, next) {
+    try {
+      const token = await AuthService.guestLogin();
+      logger.info(`Guest session issued. IP: ${req.ip}`);
+      return res.json({ token, role: 'guest' });
     } catch (err) {
       next(err);
     }

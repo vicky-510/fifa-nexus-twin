@@ -153,4 +153,15 @@ describe('Reference Endpoints', () => {
     expect(res.statusCode).toEqual(201);
     expect(res.body.scenario).toBe('crowdCrush');
   });
+
+  it('should let a guest read reference endpoints', async () => {
+    const guestToken = await AuthService.guestLogin();
+
+    const res = await request(app)
+      .get('/api/stadiums')
+      .set('Authorization', `Bearer ${guestToken}`);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.length).toBe(16);
+  });
 });

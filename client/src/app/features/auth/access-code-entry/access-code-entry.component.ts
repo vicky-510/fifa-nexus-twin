@@ -92,6 +92,18 @@ import { AccessibilityToggleComponent } from '../../../shared/components/accessi
           </button>
 
         </form>
+
+        <div class="mt-6 pt-6 border-t border-slate-800 text-center">
+          <button
+            type="button"
+            (click)="onGuestLogin()"
+            [disabled]="isGuestLoading()"
+            [attr.aria-busy]="isGuestLoading()"
+            class="text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-slate-200 disabled:opacity-50 cursor-pointer transition-colors"
+          >
+            {{ isGuestLoading() ? 'Entering as guest...' : 'Continue as Guest (read-only)' }}
+          </button>
+        </div>
       </div>
 
       <!-- Footer Info -->
@@ -109,7 +121,24 @@ export class AccessCodeEntryComponent {
 
   accessCode = '';
   isLoading = signal<boolean>(false);
+  isGuestLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
+
+  onGuestLogin(): void {
+    this.isGuestLoading.set(true);
+    this.errorMessage.set(null);
+
+    this.authService.guestLogin().subscribe({
+      next: () => {
+        this.isGuestLoading.set(false);
+        this.router.navigate(['/']);
+      },
+      error: () => {
+        this.isGuestLoading.set(false);
+        this.errorMessage.set('Could not start a guest session. Please try again.');
+      }
+    });
+  }
 
   onSubmit(): void {
     const code = this.accessCode.trim();

@@ -1,6 +1,7 @@
 const express = require('express');
 const SimulationController = require('../controllers/simulation.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const requireFullAccess = require('../middleware/requireFullAccess.middleware');
 const validateScenario = require('../middleware/validateScenario.middleware');
 const triggerRateLimiter = require('../middleware/rateLimiter.middleware');
 
@@ -19,6 +20,7 @@ router.use(authMiddleware);
 // Synchronous triggering route
 router.post(
   '/simulation-trigger',
+  requireFullAccess,
   triggerRateLimiter,
   validateScenario,
   SimulationController.trigger
@@ -27,6 +29,7 @@ router.post(
 // SSE Streaming triggering route
 router.post(
   '/simulation-trigger/stream',
+  requireFullAccess,
   triggerRateLimiter,
   validateScenario,
   SimulationController.triggerStream
@@ -35,6 +38,7 @@ router.post(
 // Escalate an active crisis to the next severity level
 router.post(
   '/simulation-trigger/escalate',
+  requireFullAccess,
   triggerRateLimiter,
   SimulationController.escalate
 );
@@ -42,6 +46,7 @@ router.post(
 // Predictive risk forecast (pre-crisis)
 router.post(
   '/simulation-trigger/predict',
+  requireFullAccess,
   triggerRateLimiter,
   SimulationController.predict
 );
@@ -49,6 +54,7 @@ router.post(
 // Manual/system crisis timeline note
 router.post(
   '/simulation/:simulationId/timeline',
+  requireFullAccess,
   SimulationController.addTimelineEntry
 );
 

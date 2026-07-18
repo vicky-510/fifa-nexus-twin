@@ -4,6 +4,9 @@ import { environment } from '../../../environments/environment';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 
 const TOKEN_STORAGE_KEY = 'stadiumpulse_token';
+const ROLE_STORAGE_KEY = 'stadiumpulse_role';
+
+export type SessionRole = 'ops_staff' | 'guest';
 
 @Injectable({
   providedIn: 'root'
@@ -14,17 +17,30 @@ export class AuthService {
   // Session-scoped signal, rehydrated from sessionStorage on construction so a
   // page refresh doesn't lose the session (sessionStorage clears when the tab/
   // browser closes, unlike localStorage, which suits a shared ops-desk terminal).
-  private tokenSignal = signal<string | null>(this.readStoredToken());
+  private tokenSignal = signal<string | null>(this.readStored(TOKEN_STORAGE_KEY));
+  private roleSignal = signal<SessionRole | null>(this.readStored(ROLE_STORAGE_KEY) as SessionRole | null);
 
   isAuthenticated = computed(() => !!this.tokenSignal());
+  isGuest = computed(() => this.roleSignal() === 'guest');
 
   constructor(private http: HttpClient) {}
 
-  private readStoredToken(): string | null {
+  private readStored(key: string): string | null {
     try {
-      return sessionStorage.getItem(TOKEN_STORAGE_KEY);
+      return sessionStorage.getItem(key);
     } catch {
       return null; // sessionStorage unavailable (e.g. private browsing edge cases)
+    }
+  }
+
+  private setSession(token: string, role: SessionRole): void {
+    this.tokenSignal.set(token);
+    this.roleSignal.set(role);
+    try {
+      sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+      sessionStorage.setItem(ROLE_STORAGE_KEY, role);
+    } catch {
+      // Ignore storage failures — session still works in-memory for this tab.
     }
   }
 
@@ -32,16 +48,30 @@ export class AuthService {
     return this.tokenSignal();
   }
 
-  verifyCode(code: string): Observable<{ token: string }> {
-    return this.http.post<{ token: string }>(`${this.apiUrl}/verify`, { code }).pipe(
+  getRole(): SessionRole | null {
+    return this.roleSignal();
+  }
+
+  verifyCode(code: string): Observable<{ token: string; role: SessionRole }> {
+    return this.http.post<{ token: string; role: SessionRole }>(`${this.apiUrl}/verify`, { code }).pipe(
       tap(response => {
         if (response && response.token) {
-          this.tokenSignal.set(response.token);
-          try {
-            sessionStorage.setItem(TOKEN_STORAGE_KEY, response.token);
-          } catch {
-            // Ignore storage failures — session still works in-memory for this tab.
-          }
+          this.setSession(response.token, response.role || 'ops_staff');
+        }
+      }),
+      catchError(err => {
+        this.logout();
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /** Issues a read-only guest session — no access code required. */
+  guestLogin(): Observable<{ token: string; role: SessionRole }> {
+    return this.http.post<{ token: string; role: SessionRole }>(`${this.apiUrl}/guest`, {}).pipe(
+      tap(response => {
+        if (response && response.token) {
+          this.setSession(response.token, response.role || 'guest');
         }
       }),
       catchError(err => {
@@ -53,8 +83,10 @@ export class AuthService {
 
   logout(): void {
     this.tokenSignal.set(null);
+    this.roleSignal.set(null);
     try {
       sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+      sessionStorage.removeItem(ROLE_STORAGE_KEY);
     } catch {
       // Ignore storage failures
     }

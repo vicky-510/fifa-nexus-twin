@@ -12,13 +12,14 @@ async function authMiddleware(req, res, next) {
   const token = authHeader.split(' ')[1];
 
   try {
-    const isValid = await AuthService.verifyToken(token);
+    const payload = await AuthService.getTokenPayload(token);
 
-    if (!isValid) {
+    if (!payload) {
       logger.warn(`Unauthorized request blocked (Invalid or expired token). Remote IP: ${req.ip}`);
       return res.status(401).json({ error: 'Unauthorized: Invalid or expired access token.' });
     }
 
+    req.authRole = payload.role;
     next();
   } catch (err) {
     next(err);

@@ -66,7 +66,9 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
             >
               <span aria-hidden="true">🗺️</span> Map View
             </button>
-            <app-change-access-code></app-change-access-code>
+            @if (!authService.isGuest()) {
+              <app-change-access-code></app-change-access-code>
+            }
             <app-accessibility-toggle></app-accessibility-toggle>
             <button
               type="button"
@@ -186,7 +188,7 @@ import { ChangeAccessCodeComponent } from '../../shared/components/change-access
 export class DashboardComponent implements OnInit {
   store = inject(SimulationStore);
   stadiumStore = inject(StadiumStore);
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 

@@ -111,4 +111,34 @@ describe('Auth Endpoints', () => {
 
     expect(res.statusCode).toEqual(400);
   });
+
+  describe('Guest sessions', () => {
+    it('should issue a guest token without requiring an access code', async () => {
+      mockAccessCodeLookup();
+      const res = await request(app).post('/api/auth/guest').send({});
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty('token');
+      expect(res.body.role).toBe('guest');
+    });
+
+    it('should reject a guest token attempting to change the access code', async () => {
+      mockAccessCodeLookup();
+      const guestRes = await request(app).post('/api/auth/guest').send({});
+      const guestToken = guestRes.body.token;
+
+      const res = await request(app)
+        .post('/api/auth/change-code')
+        .set('Authorization', `Bearer ${guestToken}`)
+        .send({ currentCode: 'FIFA2026OPS', newCode: 'NEWCODE123' });
+
+      expect(res.statusCode).toEqual(403);
+    });
+
+    it('should let a full-access token succeed where a guest token is rejected', async () => {
+      mockAccessCodeLookup();
+      const verifyRes = await request(app).post('/api/auth/verify').send({ code: 'FIFA2026OPS' });
+      expect(verifyRes.body.role).toBe('ops_staff');
+    });
+  });
 });

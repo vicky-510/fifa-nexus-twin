@@ -36,12 +36,14 @@ jest.mock('express-rate-limit', () => {
 
 describe('Simulation Endpoints', () => {
   let authToken;
+  let guestToken;
 
   beforeAll(async () => {
     // Mock the access-code DB lookup used internally by AuthService.verifyCode,
     // then generate a valid authorization token for tests (cached for the rest of this file).
     pool.query.mockResolvedValueOnce({ rows: [{ value: 'FIFA2026OPS' }] });
     authToken = await AuthService.verifyCode('FIFA2026OPS');
+    guestToken = await AuthService.guestLogin();
   });
 
   afterEach(() => {
@@ -136,7 +138,46 @@ describe('Simulation Endpoints', () => {
     expect(res.statusCode).toEqual(200);
     expect(res.headers['content-type']).toContain('text/event-stream');
     expect(res.text).toContain('data:');
-    
+
     streamSpy.mockRestore();
+  });
+
+  describe('Guest role (read-only) restrictions', () => {
+    it('should reject a guest attempting to trigger a simulation', async () => {
+      const res = await request(app)
+        .post('/api/simulation-trigger')
+        .set('Authorization', `Bearer ${guestToken}`)
+        .send({ scenario: 'exitSurge' });
+
+      expect(res.statusCode).toEqual(403);
+    });
+
+    it('should reject a guest attempting to escalate a simulation', async () => {
+      const res = await request(app)
+        .post('/api/simulation-trigger/escalate')
+        .set('Authorization', `Bearer ${guestToken}`)
+        .send({ simulationId: 5 });
+
+      expect(res.statusCode).toEqual(403);
+    });
+
+    it('should reject a guest attempting a predictive risk forecast', async () => {
+      const res = await request(app)
+        .post('/api/simulation-trigger/predict')
+        .set('Authorization', `Bearer ${guestToken}`)
+        .send({ stadiumId: 'metlife' });
+
+      expect(res.statusCode).toEqual(403);
+    });
+
+    it('should still let a guest read simulation history', async () => {
+      pool.query.mockResolvedValueOnce({ rows: [] });
+
+      const res = await request(app)
+        .get('/api/simulation-history')
+        .set('Authorization', `Bearer ${guestToken}`);
+
+      expect(res.statusCode).toEqual(200);
+    });
   });
 });

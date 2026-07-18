@@ -39,19 +39,16 @@ const AuthService = {
   },
 
   /**
-   * Validates access code and returns signed token if valid
-   * @param {string} code
-   * @returns {Promise<string|null>} Signed token or null
+   * Signs a payload (role + expiration) into the app's Base64 token format.
+   * Tokens are signed with the current access code, so rotating the code
+   * automatically invalidates every previously issued token, guest or not.
+   * @param {string} role
+   * @returns {Promise<string>}
    */
-  async verifyCode(code) {
+  async _signToken(role) {
     const currentCode = await this.getCurrentCode();
-    if (!timingSafeStringEqual(code, currentCode)) {
-      return null;
-    }
-
-    // Generate payload with 2-hour expiration
     const payload = {
-      role: 'ops_staff',
+      role,
       exp: Date.now() + 1000 * 60 * 60 * 2
     };
 
@@ -61,22 +58,39 @@ const AuthService = {
       .update(payloadStr)
       .digest('hex');
 
-    const tokenData = {
-      payload,
-      signature
-    };
-
-    return Buffer.from(JSON.stringify(tokenData)).toString('base64');
+    return Buffer.from(JSON.stringify({ payload, signature })).toString('base64');
   },
 
   /**
-   * Verifies signed token against the CURRENT access code — rotating the code
-   * automatically invalidates every token signed under the old one.
-   * @param {string} token
-   * @returns {Promise<boolean>} True if token is valid and not expired
+   * Validates access code and returns a signed full-access token if valid
+   * @param {string} code
+   * @returns {Promise<string|null>} Signed token or null
    */
-  async verifyToken(token) {
-    if (!token) return false;
+  async verifyCode(code) {
+    const currentCode = await this.getCurrentCode();
+    if (!timingSafeStringEqual(code, currentCode)) {
+      return null;
+    }
+    return this._signToken('ops_staff');
+  },
+
+  /**
+   * Issues a read-only guest token — no access code required. Guests can view
+   * reference data and simulation history, but write-gated routes (triggering,
+   * escalating, changing the access code) reject this role.
+   * @returns {Promise<string>}
+   */
+  async guestLogin() {
+    return this._signToken('guest');
+  },
+
+  /**
+   * Decodes and validates a signed token against the CURRENT access code.
+   * @param {string} token
+   * @returns {Promise<{role: string, exp: number}|null>} The payload if valid, else null
+   */
+  async getTokenPayload(token) {
+    if (!token) return null;
 
     try {
       const currentCode = await this.getCurrentCode();
@@ -90,17 +104,27 @@ const AuthService = {
         .digest('hex');
 
       if (!timingSafeStringEqual(signature, expectedSignature)) {
-        return false;
+        return null;
       }
 
       if (Date.now() > payload.exp) {
-        return false;
+        return null;
       }
 
-      return true;
+      return payload;
     } catch (err) {
-      return false;
+      return null;
     }
+  },
+
+  /**
+   * Verifies signed token against the CURRENT access code — rotating the code
+   * automatically invalidates every token signed under the old one.
+   * @param {string} token
+   * @returns {Promise<boolean>} True if token is valid and not expired
+   */
+  async verifyToken(token) {
+    return !!(await this.getTokenPayload(token));
   },
 
   /**
