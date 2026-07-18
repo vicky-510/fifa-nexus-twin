@@ -26,7 +26,7 @@ This is "logical decision making based on user context" applied literally: the A
 **Architecture:** Angular 21 (frontend) + Node/Express (backend) + PostgreSQL (Supabase-hosted), talking to Google's Gemini API.
 
 - **Backend (`server/`)** — Express REST API with route/controller/service layering:
-  - `auth` — a lightweight, dependency-free access-code gate using Node's built-in `crypto` for signed session tokens (no external JWT library)
+  - `auth` — a lightweight, dependency-free access-code gate using Node's built-in `crypto` for signed session tokens (no external JWT library). Two session tiers: a full-access `ops_staff` token (requires the access code) and a read-only `guest` token (no code required) — a `requireFullAccess` middleware blocks guests from write routes (triggering, escalating, changing the access code) while reference/history reads stay open to both
   - `reference` — serves the 16 stadiums, match schedule, and crisis scenario catalog
   - `simulation` — triggers a Gemini-backed crisis response (sync or streaming), stores results in Postgres, supports escalation and history lookup
   - Rate-limited endpoints, scenario whitelisting, and idempotent DB migrations that seed sample data only on first boot
@@ -36,8 +36,9 @@ This is "logical decision making based on user context" applied literally: the A
   - Scenario control deck, agency response panels, PA broadcast/signage preview, and a QR-dispatch overlay dialog for field staff
   - A public, unauthenticated mobile "staff card" view (`/staff/:crisisId/:role`) — the QR code shown on the ops dashboard encodes a link to this page, so ground staff scan it with their own phone to get their role-specific directive, without needing the ops access code
   - Accessibility toggle for high-contrast mode and adjustable text scale, plus app-wide ARIA labeling, live regions, focus-trapped dialogs, skip-to-content link, and `prefers-reduced-motion` support
+  - "Continue as Guest" on the login screen for a read-only session — reference data, match schedule, and simulation history are all viewable, but trigger/escalate/predict and changing the access code are disabled with an explanatory note, enforced server-side
 
-**Testing:** 23 backend tests (Jest + Supertest) and 255 frontend tests (Karma/Jasmine) covering auth, all API endpoints, guards, interceptors, state stores, and every UI component (including dialog focus/keyboard behavior).
+**Testing:** 31 backend tests (Jest + Supertest) and 261 frontend tests (Karma/Jasmine) covering auth (including the guest role), all API endpoints, guards, interceptors, state stores, and every UI component (including dialog focus/keyboard behavior).
 
 **Security & efficiency hardening:** constant-time comparison for access-code/token checks (prevents timing attacks), `helmet` security headers, request body size limits, and DB indexes on the simulation history table's sort/filter columns with a capped result size.
 
@@ -77,7 +78,9 @@ STACK
 - AI: Google Gemini (structured JSON-schema output), with a MOCK_MODE fallback
   that returns static canned responses when no API key is available.
 - Auth: no external JWT library — a single shared access code, verified server-side,
-  issuing a short-lived signed token via Node's built-in `crypto` module.
+  issuing a short-lived signed token via Node's built-in `crypto` module. Also
+  support a no-code "guest" login issuing a read-only token, so public visitors
+  can explore without the access code while write actions stay code-gated.
 
 DATA MODEL
 - 16 real World Cup stadiums (US/Mexico/Canada) with embedded risk-profile data:
