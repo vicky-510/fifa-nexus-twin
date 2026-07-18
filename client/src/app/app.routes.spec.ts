@@ -10,14 +10,14 @@ describe('routes', () => {
   it('should define the access-code route without a guard', () => {
     const route = routes.find(r => r.path === 'access-code');
     expect(route).toBeDefined();
-    expect(route!.component).toBeDefined();
+    expect(route!.loadComponent).toBeDefined();
     expect(route!.canActivate).toBeUndefined();
   });
 
   it('should protect the root route with authGuard', () => {
     const route = routes.find(r => r.path === '');
     expect(route).toBeDefined();
-    expect(route!.component).toBeDefined();
+    expect(route!.loadComponent).toBeDefined();
     expect(route!.canActivate).toContain(authGuard);
   });
 

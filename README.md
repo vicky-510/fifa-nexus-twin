@@ -45,7 +45,7 @@ This is "logical decision making based on user context" applied literally: the A
 
 **Code quality:** ESLint enforced on both sides — `angular-eslint` (with template accessibility rules) on the client and `@eslint/js` on the server — with `strict` TypeScript, no `any` in production code, and lint gating in CI alongside the test suites.
 
-**Security & efficiency hardening:** constant-time comparison for access-code/token checks (prevents timing attacks), `helmet` security headers, request body size limits, and DB indexes on the simulation history table's sort/filter columns with a capped result size.
+**Security & efficiency hardening:** constant-time comparison for access-code/token checks (prevents timing attacks), `helmet` security headers, request body size limits, and DB indexes on the simulation history table's sort/filter columns with a capped result size. All feature routes are lazy-loaded (the initial bundle is ~74 kB transferred — a ground-staff member scanning a QR code downloads only the staff card, never the ops dashboard), and API responses are gzip-compressed (excluding SSE streams, which must flush incrementally).
 
 **Deployment:**
 - Backend on Render (connected to a Supabase Postgres instance), auto-deployed via a GitHub Actions workflow that pings Render's deploy hook on every push to `main` touching `server/`.

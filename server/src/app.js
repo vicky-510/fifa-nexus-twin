@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const errorHandler = require('./middleware/errorHandler.middleware');
 const authRoutes = require('./routes/auth.routes');
 const simulationRoutes = require('./routes/simulation.routes');
@@ -10,6 +11,18 @@ const logger = require('./utils/logger');
 const app = express();
 
 app.use(helmet());
+
+// Gzip responses — the reference payloads (16 stadiums, full match schedule)
+// are large, repetitive JSON that compresses ~5-10x. SSE streams are excluded:
+// compression buffers output, which would break incremental event delivery.
+app.use(
+  compression({
+    filter: (req, res) => {
+      if (req.path.endsWith('/stream')) return false;
+      return compression.filter(req, res);
+    }
+  })
+);
 
 // Determine allowed CORS origins
 const allowedOrigins = [
